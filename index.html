@@ -357,6 +357,10 @@
             margin-top: 10px;
             line-height: 1.5;
         }
+
+        /* 수동 컨트롤 스타일 */
+        #manual-controls { margin-top: 8px; }
+        .manual-char-box button { margin: 2px 4px 4px 0; }
     </style>
 </head>
 <body>
@@ -396,10 +400,13 @@
             </details>
         </div>
 
+        <!-- 수동 컨트롤 -->
+        <div id="manual-controls"></div>
+
         <!-- 제어 바 -->
         <div class="control-bar">
             <div class="flex-row">
-                <span style="font-weight: 600; color: var(--text-muted);">진행 방식: 수동 단계별 진행</span>
+                <span id="mode-indicator" style="font-weight: 600; color: var(--text-muted);">진행 방식: 자동</span>
             </div>
             <div class="flex-row">
                 <button id="next-btn" onclick="executeNextPhase()" style="padding: 8px 20px; font-size: 0.9rem;">▶ 공격 페이즈 진행</button>
@@ -429,50 +436,18 @@
     </div>
 
 <script>
-    // ===================== 다이스 테이블 정의 (문서 기준) =====================
-
-    const MAEHWA_ATK_TABLE = {
-        1: { count: 2, sides: 20, mod: 2 },  2: { count: 2, sides: 22, mod: 4 },
-        3: { count: 2, sides: 23, mod: 6 },  4: { count: 2, sides: 24, mod: 8 },
-        5: { count: 2, sides: 25, mod: 10 },
-        6: { count: 2, sides: 26, mod: 12 }, 7: { count: 2, sides: 27, mod: 14 },
-        8: { count: 2, sides: 28, mod: 16 }, 9: { count: 2, sides: 29, mod: 18 },
-        10: { count: 2, sides: 30, mod: 20 }, 11: { count: 2, sides: 31, mod: 22 }
-    };
-
-    const CHEONGJUK_DEF_TABLE = {
-        1: { count: 2, sides: 26, mod: 3 },  2: { count: 2, sides: 27, mod: 6 },
-        3: { count: 2, sides: 28, mod: 9 },  4: { count: 2, sides: 29, mod: 12 },
-        5: { count: 2, sides: 30, mod: 15 },
-        6: { count: 2, sides: 31, mod: 18 }, 7: { count: 2, sides: 32, mod: 21 },
-        8: { count: 2, sides: 33, mod: 24 }, 9: { count: 2, sides: 34, mod: 27 },
-        10: { count: 2, sides: 35, mod: 30 }, 11: { count: 2, sides: 36, mod: 33 }
-    };
-
-    const NANCHO_HEAL_TABLE = {
-        1: { count: 2, sides: 12, mod: 1 },  2: { count: 2, sides: 14, mod: 4 },
-        3: { count: 2, sides: 16, mod: 6 },  4: { count: 2, sides: 18, mod: 8 },
-        5: { count: 2, sides: 20, mod: 10 },
-        6: { count: 2, sides: 22, mod: 12 }, 7: { count: 2, sides: 24, mod: 14 },
-        8: { count: 2, sides: 26, mod: 16 }, 9: { count: 2, sides: 28, mod: 18 },
-        10: { count: 2, sides: 30, mod: 20 }, 11: { count: 2, sides: 32, mod: 22 }
-    };
-
-    const STR_TABLE = {
-        1: { count: 2, sides: 16, mod: 1 }, 2: { count: 2, sides: 17, mod: 2 },
-        3: { count: 2, sides: 18, mod: 3 }, 4: { count: 2, sides: 19, mod: 4 },
-        5: { count: 2, sides: 20, mod: 5 }
-    };
-
+    // 다이스/테이블
+    const MAEHWA_ATK_TABLE = { 1:{count:2,sides:20,mod:2},2:{count:2,sides:22,mod:4},3:{count:2,sides:23,mod:6},4:{count:2,sides:24,mod:8},5:{count:2,sides:25,mod:10},6:{count:2,sides:26,mod:12},7:{count:2,sides:27,mod:14},8:{count:2,sides:28,mod:16},9:{count:2,sides:29,mod:18},10:{count:2,sides:30,mod:20},11:{count:2,sides:31,mod:22} };
+    const CHEONGJUK_DEF_TABLE = { 1:{count:2,sides:26,mod:3},2:{count:2,sides:27,mod:6},3:{count:2,sides:28,mod:9},4:{count:2,sides:29,mod:12},5:{count:2,sides:30,mod:15},6:{count:2,sides:31,mod:18},7:{count:2,sides:32,mod:21},8:{count:2,sides:33,mod:24},9:{count:2,sides:34,mod:27},10:{count:2,sides:35,mod:30},11:{count:2,sides:36,mod:33} };
+    const NANCHO_HEAL_TABLE = {1:{count:2,sides:12,mod:1},2:{count:2,sides:14,mod:4},3:{count:2,sides:16,mod:6},4:{count:2,sides:18,mod:8},5:{count:2,sides:20,mod:10},6:{count:2,sides:22,mod:12},7:{count:2,sides:24,mod:14},8:{count:2,sides:26,mod:16},9:{count:2,sides:28,mod:18},10:{count:2,sides:30,mod:20},11:{count:2,sides:32,mod:22} };
+    const STR_TABLE = {1:{count:2,sides:16,mod:1},2:{count:2,sides:17,mod:2},3:{count:2,sides:18,mod:3},4:{count:2,sides:19,mod:4},5:{count:2,sides:20,mod:5}};
     const CRIT_BONUS_TABLE = {
-        '매화':        { 1: { c: 2, s: 2, m: 1 },  2: { c: 2, s: 4, m: 2 },  3: { c: 2, s: 6, m: 3 },  4: { c: 2, s: 8, m: 4 },  5: { c: 2, s: 10, m: 5 } },
-        '청죽':        { 1: { c: 2, s: 3, m: 1 },  2: { c: 2, s: 6, m: 2 },  3: { c: 2, s: 9, m: 3 },  4: { c: 2, s: 12, m: 4 }, 5: { c: 2, s: 15, m: 5 } },
-        '난초(회복)':  { 1: { c: 2, s: 4, m: 1 },  2: { c: 2, s: 5, m: 2 },  3: { c: 2, s: 6, m: 3 },  4: { c: 2, s: 7, m: 4 },  5: { c: 2, s: 8, m: 5 } }
+        '매화': {1:{c:2,s:2,m:1},2:{c:2,s:4,m:2},3:{c:2,s:6,m:3},4:{c:2,s:8,m:4},5:{c:2,s:10,m:5}},
+        '청죽': {1:{c:2,s:3,m:1},2:{c:2,s:6,m:2},3:{c:2,s:9,m:3},4:{c:2,s:12,m:4},5:{c:2,s:15,m:5}},
+        '난초(회복)': {1:{c:2,s:4,m:1},2:{c:2,s:5,m:2},3:{c:2,s:6,m:3},4:{c:2,s:7,m:4},5:{c:2,s:8,m:5}}
     };
-
-    const hpMap = { 1: 150, 2: 160, 3: 170, 4: 180, 5: 200 };
-    const sanityMap = { 1: 60, 2: 70, 3: 80, 4: 90, 5: 100 };
-
+    const hpMap = {1:150,2:160,3:170,4:180,5:200};
+    const sanityMap = {1:60,2:70,3:80,4:90,5:100};
     const RISK_AVERSION_COEFF = 1.1;
 
     function getDiceConfig(table, lvl) {
@@ -482,7 +457,7 @@
         return table[clamped];
     }
 
-    // ===================== 기본 데이터 =====================
+    // 게임 데이터 초기값
     let gameData = {
         round: 1,
         phaseStep: 0,
@@ -490,16 +465,18 @@
         mainEnemyId: 'E1',
         mainAoeDice: '2d2*10+30',
         mainSanityDice: '1d10',
+        settings: { manualMode: false },
+        pendingActions: {}, // id -> '반격'|'이능(방어)'|'회피'|'패스' or 'proxy:targetId' for 청죽 대리방어
         enemies: [
-            { id: 'E1', name: 'G', hp: 2500, maxHp: 2500, dex: 20, dice: '2d60+20', targetCount: 2 }
+            { id:'E1', name:'G', hp:2500, maxHp:2500, dex:20, dice:'2d60+20', targetCount:2, attackRounds:1, attackPattern:[{targets:2,allowRepeat:false,dice:'2d60+20',label:'기본'}] }
         ],
         characters: [
-            { id: 'A', name: '매화 A', position: '매화',       stats: { hp: 4, str: 2, dex: 1, luck: 5, sanity: 5, ability: 5 } },
-            { id: 'B', name: '매화 B', position: '매화',       stats: { hp: 5, str: 1, dex: 5, luck: 5, sanity: 1, ability: 5 } },
-            { id: 'C', name: '청죽 C', position: '청죽',       stats: { hp: 5, str: 5, dex: 2, luck: 2, sanity: 3, ability: 5 } },
-            { id: 'D', name: '청죽 D', position: '청죽',       stats: { hp: 5, str: 5, dex: 1, luck: 4, sanity: 2, ability: 5 } },
-            { id: 'E', name: '난초 E', position: '난초(회복)', stats: { hp: 4, str: 2, dex: 5, luck: 3, sanity: 2, ability: 5 } },
-            { id: 'F', name: '난초 F', position: '난초(보조)', stats: { hp: 1, str: 5, dex: 5, luck: 2, sanity: 5, ability: 5 } }
+            { id:'A', name:'매화 A', position:'매화', stats:{hp:4,str:2,dex:1,luck:5,sanity:5,ability:5} },
+            { id:'B', name:'매화 B', position:'매화', stats:{hp:5,str:1,dex:5,luck:5,sanity:1,ability:5} },
+            { id:'C', name:'청죽 C', position:'청죽', stats:{hp:5,str:5,dex:2,luck:2,sanity:3,ability:5} },
+            { id:'D', name:'청죽 D', position:'청죽', stats:{hp:5,str:5,dex:1,luck:4,sanity:2,ability:5} },
+            { id:'E', name:'난초 E', position:'난초(회복)', stats:{hp:4,str:2,dex:5,luck:3,sanity:2,ability:5} },
+            { id:'F', name:'난초 F', position:'난초(보조)', stats:{hp:1,str:5,dex:5,luck:2,sanity:5,ability:5} }
         ]
     };
 
@@ -509,16 +486,22 @@
         c.maxSanity = sanityMap[c.stats.sanity] || 80;
         c.sanity = c.maxSanity;
         c.stunned = 0;
+        c.canProxyCounter = false;
         return c;
     }
     gameData.characters = gameData.characters.map(hydrateCharacter);
 
     function hydrateEnemy(e) {
-        e.maxHp = e.hp; // 설정값을 최대체력으로 사용
+        e.maxHp = e.hp;
+        if (typeof e.attackRounds === 'undefined') e.attackRounds = 1;
+        if (!Array.isArray(e.attackPattern)) {
+            e.attackPattern = [{ targets: e.targetCount || 1, allowRepeat: false, dice: e.dice || '1d20+5', label: '기본' }];
+        }
         return e;
     }
     gameData.enemies = gameData.enemies.map(hydrateEnemy);
 
+    // UI 초기화
     function initConfigUI() {
         document.getElementById('cfg-main-aoe-dice').value = gameData.mainAoeDice || '';
         document.getElementById('cfg-main-sanity-dice').value = gameData.mainSanityDice || '1d10';
@@ -526,28 +509,63 @@
         renderCharacterConfigList();
     }
 
-    // ---------- 에너미 설정 UI ----------
+    // ====== 에너미 설정 UI (패턴/라운드 편집 가능) ======
     function renderEnemyConfigList() {
         const list = document.getElementById('enemy-config-list');
         list.innerHTML = '';
-        gameData.enemies.forEach((enemy, index) => {
+        gameData.enemies.forEach((enemy, eIdx) => {
             let item = document.createElement('div');
             item.className = 'char-config-item';
+
+            let patternsHtml = '';
+            (enemy.attackPattern || []).forEach((p, pIdx) => {
+                patternsHtml += `
+                    <div style="display:flex; gap:6px; align-items:center; margin-top:6px;" id="cfg-e${eIdx}-pattern-${pIdx}">
+                        <label style="font-size:0.75rem;">라벨<input type="text" value="${p.label||''}" id="cfg-e${eIdx}-p-label-${pIdx}" style="width:120px; margin-left:4px;"></label>
+                        <label style="font-size:0.75rem;">타깃수<input type="number" min="1" max="6" value="${p.targets||1}" id="cfg-e${eIdx}-p-targets-${pIdx}" style="width:72px; margin-left:4px;"></label>
+                        <label style="font-size:0.75rem;">반복허용<input type="checkbox" ${p.allowRepeat ? 'checked' : ''} id="cfg-e${eIdx}-p-repeat-${pIdx}" style="margin-left:4px;"></label>
+                        <label style="font-size:0.75rem;">다이스<input type="text" value="${p.dice || enemy.dice || ''}" id="cfg-e${eIdx}-p-dice-${pIdx}" style="width:120px; margin-left:4px;"></label>
+                        <button onclick="removeEnemyPattern(${eIdx}, ${pIdx})" class="btn-secondary" style="padding:2px 6px; font-size:0.7rem; color:var(--danger);">패턴 삭제</button>
+                    </div>
+                `;
+            });
+
             item.innerHTML = `
                 <div class="flex-row" style="justify-content: space-between;">
-                    <input type="text" value="${enemy.name}" style="width:140px;" id="cfg-ename-${index}" placeholder="에너미 이름">
-                    <button onclick="removeEnemyRow(${index})" class="btn-secondary" style="padding:2px 6px; font-size:0.7rem; color:var(--danger);">삭제</button>
+                    <input type="text" value="${enemy.name}" style="width:140px;" id="cfg-ename-${eIdx}" placeholder="에너미 이름">
+                    <button onclick="removeEnemyRow(${eIdx})" class="btn-secondary" style="padding:2px 6px; font-size:0.7rem; color:var(--danger);">삭제</button>
                 </div>
-                <div class="enemy-config-inputs">
-                    <label>최대체력<input type="number" value="${enemy.maxHp}" id="cfg-ehp-${index}"></label>
-                    <label>민첩<input type="number" value="${enemy.dex}" id="cfg-edex-${index}"></label>
-                    <label>공격다이스<input type="text" value="${enemy.dice}" id="cfg-edice-${index}"></label>
-                    <label>공격대상수<input type="number" min="1" max="6" value="${enemy.targetCount}" id="cfg-etargets-${index}"></label>
+                <div class="enemy-config-inputs" style="margin-top:8px;">
+                    <label>최대체력<input type="number" value="${enemy.maxHp}" id="cfg-ehp-${eIdx}"></label>
+                    <label>민첩<input type="number" value="${enemy.dex}" id="cfg-edex-${eIdx}"></label>
+                    <label>기본다이스<input type="text" value="${enemy.dice || ''}" id="cfg-edice-${eIdx}"></label>
+                    <label>기본타깃수<input type="number" min="1" max="6" value="${enemy.targetCount||1}" id="cfg-etargets-${eIdx}"></label>
+                    <label>공격 라운드<input type="number" min="1" max="6" value="${enemy.attackRounds||1}" id="cfg-eRounds-${eIdx}"></label>
+                </div>
+                <div style="margin-top:8px; font-size:0.85rem; color:var(--text-muted);">
+                    <b>패턴 목록</b> (한 패턴 내 다중 타깃은 동일 다이스 사용)
+                    <div id="cfg-e${eIdx}-patterns">${patternsHtml}</div>
+                    <div style="margin-top:6px;">
+                        <button onclick="addEnemyPattern(${eIdx})" class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;">+ 패턴 추가</button>
+                    </div>
                 </div>
             `;
             list.appendChild(item);
         });
         updateMainEnemySelect();
+    }
+
+    function addEnemyPattern(enemyIndex) {
+        let enemy = gameData.enemies[enemyIndex];
+        if (!enemy.attackPattern) enemy.attackPattern = [];
+        enemy.attackPattern.push({ targets: 1, allowRepeat: false, dice: enemy.dice || '1d20+5', label: '패턴 ' + (enemy.attackPattern.length + 1) });
+        renderEnemyConfigList();
+    }
+    function removeEnemyPattern(enemyIndex, patternIndex) {
+        let enemy = gameData.enemies[enemyIndex];
+        if (!enemy || !enemy.attackPattern) return;
+        enemy.attackPattern.splice(patternIndex, 1);
+        renderEnemyConfigList();
     }
 
     function updateMainEnemySelect() {
@@ -560,7 +578,6 @@
             opt.text = `${enemy.name} (#${index + 1})`;
             select.appendChild(opt);
         });
-        // 기존 선택값 또는 현재 mainEnemyId에 해당하는 인덱스를 유지 시도
         let mainIndex = gameData.enemies.findIndex(e => e.id === gameData.mainEnemyId);
         if (mainIndex < 0) mainIndex = 0;
         if (prevValue !== '' && gameData.enemies[prevValue]) {
@@ -574,7 +591,7 @@
         let newId = 'E' + Date.now();
         gameData.enemies.push({
             id: newId, name: '에너미 ' + (gameData.enemies.length + 1),
-            hp: 1000, maxHp: 1000, dex: 10, dice: '1d20+5', targetCount: 1
+            hp: 1000, maxHp: 1000, dex: 10, dice: '1d20+5', targetCount: 1, attackRounds: 1, attackPattern: [{ targets: 1, dice: '1d20+5', label: '기본' }]
         });
         renderEnemyConfigList();
     }
@@ -588,7 +605,7 @@
         renderEnemyConfigList();
     }
 
-    // ---------- 캐릭터 설정 UI ----------
+    // ====== 캐릭터 UI ======
     function renderCharacterConfigList() {
         const list = document.getElementById('character-config-list');
         list.innerHTML = '';
@@ -636,25 +653,57 @@
         renderCharacterConfigList();
     }
 
+    // ====== 설정 적용 (패턴/라운드 저장 포함) ======
     function applyConfiguration() {
-        // 에너미 읽기
+        // 에너미 저장
         let newEnemies = [];
         gameData.enemies.forEach((oldEnemy, index) => {
             let n = document.getElementById(`cfg-ename-${index}`).value || ('에너미 ' + (index + 1));
             let hp = parseInt(document.getElementById(`cfg-ehp-${index}`).value) || 1000;
             let dex = parseInt(document.getElementById(`cfg-edex-${index}`).value) || 10;
-            let dice = document.getElementById(`cfg-edice-${index}`).value || '1d20+5';
+            let dice = document.getElementById(`cfg-edice-${index}`).value || (oldEnemy.dice || '1d20+5');
             let targetCount = parseInt(document.getElementById(`cfg-etargets-${index}`).value) || 1;
-            newEnemies.push(hydrateEnemy({ id: oldEnemy.id, name: n, hp: hp, dex: dex, dice: dice, targetCount: targetCount }));
+            let base = hydrateEnemy({ id: oldEnemy.id, name: n, hp: hp, dex: dex, dice: dice, targetCount: targetCount, attackRounds: oldEnemy.attackRounds || 1, attackPattern: oldEnemy.attackPattern || [{ targets: targetCount, dice: dice, label: '기본' }] });
+            newEnemies.push(base);
         });
         gameData.enemies = newEnemies;
+
+        // attackRounds 및 패턴 읽기
+        gameData.enemies.forEach((enemy, eIdx) => {
+            let roundsInput = document.getElementById(`cfg-eRounds-${eIdx}`);
+            if (roundsInput) enemy.attackRounds = Math.max(1, parseInt(roundsInput.value) || 1);
+
+            let patternsContainer = document.getElementById(`cfg-e${eIdx}-patterns`);
+            if (patternsContainer) {
+                let patterns = [];
+                [...patternsContainer.children].forEach(child => {
+                    if (!child.id) return;
+                    let id = child.id;
+                    let parts = id.split('-');
+                    let pIdx = parts[parts.length - 1];
+                    let labelEl = document.getElementById(`cfg-e${eIdx}-p-label-${pIdx}`);
+                    let targetsEl = document.getElementById(`cfg-e${eIdx}-p-targets-${pIdx}`);
+                    let repeatEl = document.getElementById(`cfg-e${eIdx}-p-repeat-${pIdx}`);
+                    let diceEl = document.getElementById(`cfg-e${eIdx}-p-dice-${pIdx}`);
+                    if (labelEl && targetsEl && diceEl) {
+                        patterns.push({
+                            label: labelEl.value || '',
+                            targets: Math.max(1, parseInt(targetsEl.value) || 1),
+                            allowRepeat: !!(repeatEl && repeatEl.checked),
+                            dice: diceEl.value || (enemy.dice || '1d20+5')
+                        });
+                    }
+                });
+                if (patterns.length > 0) enemy.attackPattern = patterns;
+            }
+        });
 
         let mainSelectVal = parseInt(document.getElementById('cfg-main-enemy-select').value);
         gameData.mainEnemyId = (gameData.enemies[mainSelectVal] || gameData.enemies[0]).id;
         gameData.mainAoeDice = document.getElementById('cfg-main-aoe-dice').value || '';
         gameData.mainSanityDice = document.getElementById('cfg-main-sanity-dice').value || '1d10';
 
-        // 캐릭터 읽기
+        // 캐릭터 저장
         let newChars = [];
         gameData.characters.forEach((oldChar, index) => {
             let n = document.getElementById(`cfg-name-${index}`).value;
@@ -679,48 +728,44 @@
         gameData.round = 1;
         gameData.phaseStep = 0;
         gameData.activeBuffs = {};
+        gameData.pendingActions = {};
         document.getElementById('next-btn').innerText = '▶ 공격 페이즈 진행';
         renderEnemyConfigList();
         renderUI();
         logMessage(`모든 설정이 반영되고 초기화되었습니다.`, 'system');
     }
 
+    // ====== 주사위/로그 ======
     function rollDiceDetailed(count, sides) {
         let rolls = [];
         let total = 0;
-        for(let i = 0; i < count; i++) {
-            let val = Math.floor(Math.random() * sides) + 1;
-            rolls.push(val);
-            total += val;
+        for (let i = 0; i < count; i++) {
+            let v = Math.floor(Math.random() * sides) + 1;
+            rolls.push(v);
+            total += v;
         }
         return { rolls, total };
     }
-
     function rollCustomDicePure(diceString) {
         try {
             let clean = diceString.replace(/\s+/g, '');
             let match = clean.match(/^(\d+)d(\d+)(?:\*(\d+))?(?:\+(\d+))?$/i);
             if (!match) throw new Error('invalid dice format');
-
             let count = parseInt(match[1]);
             let sides = parseInt(match[2]);
             let mult = match[3] ? parseInt(match[3]) : 1;
             let mod = match[4] ? parseInt(match[4]) : 0;
-
             let res = rollDiceDetailed(count, sides);
             let finalVal = res.total * mult + mod;
-
             let detailStr = `[${res.rolls.join(', ')}]`;
             if (mult !== 1) detailStr += ` × ${mult}`;
             if (mod !== 0) detailStr += ` + ${mod}`;
-
             return { value: finalVal, detail: detailStr };
         } catch (e) {
-            let res = rollDiceDetailed(1, 10);
-            return { value: res.total, detail: `[${res.rolls.join(', ')}]` };
+            let r = rollDiceDetailed(1, 10);
+            return { value: r.total, detail: `[${r.rolls.join(', ')}]` };
         }
     }
-
     function logMessage(msg, type = 'system') {
         const box = document.getElementById('log-box');
         const entry = document.createElement('div');
@@ -729,7 +774,6 @@
         box.appendChild(entry);
         box.scrollTop = box.scrollHeight;
     }
-
     function logDivider(text) {
         const box = document.getElementById('log-box');
         const div = document.createElement('div');
@@ -739,23 +783,15 @@
         box.scrollTop = box.scrollHeight;
     }
 
-    // ===================== 에너미 헬퍼 =====================
-    function getAliveEnemies() {
-        return gameData.enemies.filter(e => e.hp > 0);
-    }
+    // ====== 헬퍼: 에너미/파티상태 ======
+    function getAliveEnemies() { return gameData.enemies.filter(e=>e.hp>0); }
+    function getLowestHpEnemy() { let alive=getAliveEnemies(); if(alive.length===0) return null; return [...alive].sort((a,b)=>a.hp-b.hp)[0]; }
+    function isMainEnemy(e) { return e.id === gameData.mainEnemyId; }
 
-    function getLowestHpEnemy() {
-        let alive = getAliveEnemies();
-        if (alive.length === 0) return null;
-        return [...alive].sort((a, b) => a.hp - b.hp)[0];
-    }
-
-    function isMainEnemy(e) {
-        return e.id === gameData.mainEnemyId;
-    }
-
+    // ====== UI 렌더 ======
     function renderUI() {
         document.getElementById('round-indicator').innerText = `제 ${gameData.round} 라운드`;
+        document.getElementById('mode-indicator').innerText = `진행 방식: ${gameData.settings.manualMode ? '수동' : '자동'}`;
 
         const enemyContainer = document.getElementById('enemy-status-container');
         enemyContainer.innerHTML = '';
@@ -765,9 +801,7 @@
             let mainTag = isMain ? ' <span class="tag-main">메인</span>' : '';
             let deadTag = isDead ? ' <span class="tag-dead">처치됨</span>' : '';
             let isAoeRound = (gameData.round % 5 === 0);
-            let targetDesc = (isMain && isAoeRound && gameData.mainAoeDice && gameData.mainAoeDice.trim() !== '')
-                ? '전체 (단체 공격)'
-                : (enemy.targetCount + '명');
+            let targetDesc = (isMain && isAoeRound && gameData.mainAoeDice && gameData.mainAoeDice.trim() !== '') ? '전체 (단체 공격)' : (enemy.targetCount + '명');
             enemyContainer.innerHTML += `
                 <div class="card enemy-card ${isMain ? 'main-enemy' : ''} ${isDead ? 'defeated' : ''}">
                     <h3>${enemy.name}${mainTag}${deadTag} <span>${Math.max(0, enemy.hp)} / ${enemy.maxHp}</span></h3>
@@ -782,16 +816,13 @@
 
         const container = document.getElementById('party-status-container');
         container.innerHTML = '';
-
         gameData.characters.forEach(char => {
             let stunText = char.stunned > 0 ? ` <span style="color:var(--danger);">(기절: ${char.stunned}턴)</span>` : '';
-            let buffText = '';
-            if (gameData.activeBuffs[char.id]) {
-                buffText = ` <span style="color:var(--primary);">(버프 +${gameData.activeBuffs[char.id].bonus} by ${gameData.activeBuffs[char.id].source})</span>`;
-            }
+            let buffText = gameData.activeBuffs[char.id] ? ` <span style="color:var(--primary);">(버프 +${gameData.activeBuffs[char.id].bonus} by ${gameData.activeBuffs[char.id].source})</span>` : '';
+            let declared = gameData.pendingActions[char.id] ? ` <span style="color:#94a3b8;">[선언: ${gameData.pendingActions[char.id]}]</span>` : '';
             container.innerHTML += `
                 <div class="card">
-                    <h3>${char.name} (${char.position})${stunText}${buffText}</h3>
+                    <h3>${char.name} (${char.position})${stunText}${buffText}${declared}</h3>
                     <div class="stats-grid">
                         <div class="stat-badge">체력<span>${char.stats.hp}</span></div>
                         <div class="stat-badge">근력<span>${char.stats.str}</span></div>
@@ -809,6 +840,7 @@
         });
     }
 
+    // ====== 정밀 로직: 스킬/크리티컬/평균값 등 ======
     function sortCharacters(chars) {
         return [...chars].sort((a, b) => {
             if (b.stats.dex !== a.stats.dex) return b.stats.dex - a.stats.dex;
@@ -818,323 +850,45 @@
             return b.stats.hp - a.stats.hp;
         });
     }
-
     function checkCrit(char) {
         let luck = char.stats.luck;
-        let critThreshold = { 1: 9, 2: 8, 3: 7, 4: 6, 5: 5 }[luck] || 7;
-        let roll = rollDiceDetailed(1, 10);
+        let critThreshold = {1:9,2:8,3:7,4:6,5:5}[luck] || 7;
+        let roll = rollDiceDetailed(1,10);
         let success = roll.total > critThreshold;
         return { success, roll, threshold: critThreshold };
     }
-
     function rollCritBonus(char) {
-        if (char.position === '난초(보조)') {
-            return { bonus: 1, detail: '고정 +1' };
-        }
-        let table = CRIT_BONUS_TABLE[char.position];
-        if (!table) table = CRIT_BONUS_TABLE['청죽'];
+        if (char.position === '난초(보조)') return { bonus:1, detail:'고정 +1' };
+        let table = CRIT_BONUS_TABLE[char.position] || CRIT_BONUS_TABLE['청죽'];
         let luck = Math.min(5, Math.max(1, char.stats.luck));
         let cfg = table[luck];
-        let roll = rollDiceDetailed(cfg.c, cfg.s);
-        let bonus = roll.total + cfg.m;
-        return { bonus, detail: `[${roll.rolls.join(', ')}] + ${cfg.m}` };
+        let r = rollDiceDetailed(cfg.c, cfg.s);
+        return { bonus: r.total + cfg.m, detail: `[${r.rolls.join(', ')}] + ${cfg.m}` };
     }
-
-    function executeNextPhase() {
-        if (getAliveEnemies().length === 0) {
-            alert('이미 모든 에너미를 토벌하였습니다.');
-            return;
-        }
-
-        let activeChars = gameData.characters.filter(c => c.hp > 0 && c.stunned === 0);
-        if (activeChars.length === 0) {
-            alert('행동 가능한 캐릭터가 없습니다.');
-            return;
-        }
-
-        if (gameData.phaseStep === 0) {
-            // STEP 0: 공격 페이즈
-            logDivider(`제 ${gameData.round} 라운드 - 공격 페이즈`);
-
-            let partyDexSum = activeChars.reduce((sum, c) => sum + c.stats.dex, 0);
-            let enemyDexRef = getLowestHpEnemy() ? getLowestHpEnemy().dex : 0;
-            let firstTurn = partyDexSum >= enemyDexRef ? "파티 선공" : "에너미 선공";
-            logMessage(`[<span class="tag-sup">선후공 판정</span>] 파티 민첩 총합(${partyDexSum}) vs 최우선 타격 에너미 민첩(${enemyDexRef}) -> <b>${firstTurn}</b>`, 'system');
-
-            let sortedChars = sortCharacters(activeChars);
-
-            let activeBuffs = {};
-
-            let supportChars = sortedChars.filter(c => c.position === '난초(보조)');
-            let normalChars = sortedChars.filter(c => c.position !== '난초(보조)');
-
-            supportChars.forEach(char => {
-                let lvl = char.stats.ability;
-                let buffVal = 0;
-                let detailStr = "";
-                if (lvl === 1) { buffVal = 1; detailStr = "고정 1"; }
-                else if (lvl === 2) { let r = rollDiceDetailed(1, 2); buffVal = r.total; detailStr = `[${r.rolls.join(', ')}]`; }
-                else if (lvl === 3) { let r = rollDiceDetailed(1, 2); buffVal = r.total + 1; detailStr = `[${r.rolls.join(', ')}] + 1`; }
-                else if (lvl === 4) { let r = rollDiceDetailed(1, 3); buffVal = r.total + 1; detailStr = `[${r.rolls.join(', ')}] + 1`; }
-                else if (lvl === 5) { let r = rollDiceDetailed(2, 2); buffVal = r.total + 1; detailStr = `[${r.rolls.join(', ')}] + 1`; }
-
-                let target = normalChars[Math.floor(Math.random() * normalChars.length)] || char;
-
-                logMessage(`[<span class="tag-sup">보조 선언</span>] [${char.name} > ${target.name} / 이능(보조) / 이능스탯 ${lvl}] (눈금: <span class="dice-highlight">${detailStr}</span>) -> 대상 스탯 +${buffVal} 부여`, 'party');
-
-                let crit = checkCrit(char);
-                if (crit.success) {
-                    let critBonus = rollCritBonus(char);
-                    buffVal += critBonus.bonus;
-                    logMessage(`└ [<span class="tag-crit-succ">크리티컬 성공</span>] 판정 눈금: <span class="dice-highlight">[${crit.roll.rolls.join(', ')}]</span> (> 기준 ${crit.threshold}) | 추가 보정: <span class="dice-highlight">${critBonus.detail}</span> (+${critBonus.bonus}) -> 최종 +${buffVal}`, 'party');
-                } else {
-                    logMessage(`└ [<span class="tag-crit-fail">크리티컬 실패</span>] 판정 눈금: <span class="dice-highlight">[${crit.roll.rolls.join(', ')}]</span> (<= 기준 ${crit.threshold})`, 'party');
-                }
-
-                activeBuffs[target.id] = { bonus: buffVal, source: char.name };
-            });
-
-            gameData.activeBuffs = activeBuffs;
-
-            sortedChars.forEach(char => {
-                if (char.position === '난초(보조)') return;
-
-                let buffData = activeBuffs[char.id];
-                let buff = buffData ? buffData.bonus : 0;
-                let buffNotice = buff > 0 ? ` [<span class="tag-buff">보조 버프 적용: +${buff} (by ${buffData.source})</span>]` : '';
-
-                if (char.position === '매화') {
-                    let target = getLowestHpEnemy();
-                    if (!target) return;
-                    let lvl = char.stats.ability + buff;
-                    let cfg = getDiceConfig(MAEHWA_ATK_TABLE, lvl);
-                    let diceRes = rollDiceDetailed(cfg.count, cfg.sides);
-                    let dmg = diceRes.total + cfg.mod;
-                    let detailText = `[${diceRes.rolls.join(', ')}] + ${cfg.mod}`;
-
-                    logMessage(`[<span class="tag-atk">행동 선언</span>] [${char.name} > ${target.name} / 이능(공격) / 이능스탯 ${lvl}]${buffNotice}`, 'party');
-                    logMessage(`└ [<span class="tag-atk">데미지</span>] 눈금: <span class="dice-highlight">${detailText}</span> -> ${target.name}에게 ${dmg} 피해`, 'party');
-
-                    let crit = checkCrit(char);
-                    if (crit.success) {
-                        let critBonus = rollCritBonus(char);
-                        dmg += critBonus.bonus;
-                        logMessage(`└ [<span class="tag-crit-succ">크리티컬 성공</span>] 판정 눈금: <span class="dice-highlight">[${crit.roll.rolls.join(', ')}]</span> (> 기준 ${crit.threshold}) | 추가 데미지: <span class="dice-highlight">${critBonus.detail}</span> (+${critBonus.bonus})`, 'party');
-                    } else {
-                        logMessage(`└ [<span class="tag-crit-fail">크리티컬 실패</span>] 판정 눈금: <span class="dice-highlight">[${crit.roll.rolls.join(', ')}]</span> (<= 기준 ${crit.threshold})`, 'party');
-                    }
-
-                    target.hp = Math.max(0, target.hp - dmg);
-                    if (target.hp <= 0) {
-                        logMessage(`[<span class="tag-dead">처치</span>] ${target.name} 토벌 완료!`, 'system');
-                    }
-
-                } else if (char.position === '난초(회복)') {
-                    let lvl = char.stats.ability + buff;
-                    let cfg = getDiceConfig(NANCHO_HEAL_TABLE, lvl);
-                    let diceRes = rollDiceDetailed(cfg.count, cfg.sides);
-                    let healing = diceRes.total + cfg.mod;
-                    let detailText = `[${diceRes.rolls.join(', ')}] + ${cfg.mod}`;
-
-                    let lowest = [...gameData.characters].filter(c => c.hp > 0).sort((a,b) => (a.hp/a.maxHp) - (b.hp/b.maxHp))[0];
-
-                    logMessage(`[<span class="tag-heal">행동 선언</span>] [${char.name} > ${lowest.name} / 이능(회복) / 이능스탯 ${lvl}]${buffNotice}`, 'party');
-                    logMessage(`└ [<span class="tag-heal">회복</span>] 눈금: <span class="dice-highlight">${detailText}</span> -> ${lowest.name} 체력 ${healing} 회복`, 'party');
-
-                    let crit = checkCrit(char);
-                    if (crit.success) {
-                        let critBonus = rollCritBonus(char);
-                        healing += critBonus.bonus;
-                        logMessage(`└ [<span class="tag-crit-succ">크리티컬 성공</span>] 판정 눈금: <span class="dice-highlight">[${crit.roll.rolls.join(', ')}]</span> (> 기준 ${crit.threshold}) | 추가 회복: <span class="dice-highlight">${critBonus.detail}</span> (+${critBonus.bonus})`, 'party');
-                    } else {
-                        logMessage(`└ [<span class="tag-crit-fail">크리티컬 실패</span>] 판정 눈금: <span class="dice-highlight">[${crit.roll.rolls.join(', ')}]</span> (<= 기준 ${crit.threshold})`, 'party');
-                    }
-
-                    lowest.hp = Math.min(lowest.maxHp, lowest.hp + healing);
-
-                } else {
-                    let target = getLowestHpEnemy();
-                    if (!target) return;
-                    let lvl = char.stats.str;
-                    let cfg = getDiceConfig(STR_TABLE, lvl);
-                    let diceRes = rollDiceDetailed(cfg.count, cfg.sides);
-                    let dmg = diceRes.total + cfg.mod;
-                    let detailText = `[${diceRes.rolls.join(', ')}] + ${cfg.mod}`;
-
-                    logMessage(`[<span class="tag-atk">행동 선언</span>] [${char.name} > ${target.name} / 근력 / 근력스탯 ${lvl}]`, 'party');
-                    logMessage(`└ [<span class="tag-atk">데미지</span>] 눈금: <span class="dice-highlight">${detailText}</span> -> ${target.name}에게 ${dmg} 피해`, 'party');
-                    target.hp = Math.max(0, target.hp - dmg);
-                    if (target.hp <= 0) {
-                        logMessage(`[<span class="tag-dead">처치</span>] ${target.name} 토벌 완료!`, 'system');
-                    }
-                }
-            });
-
-            renderUI();
-            if (checkGameOver()) return;
-
-            gameData.phaseStep = 1;
-            document.getElementById('next-btn').innerText = '▶ 대응 페이즈 진행';
-            document.getElementById('phase-indicator').innerText = '대응 페이즈 대기 중';
-
-        } else if (gameData.phaseStep === 1) {
-            // STEP 1: 대응 페이즈
-            logDivider(`제 ${gameData.round} 라운드 - 대응 페이즈`);
-
-            let isAoeRound = (gameData.round % 5 === 0);
-            let hitList = [];
-
-            getAliveEnemies().forEach(enemy => {
-                let isMain = isMainEnemy(enemy);
-                let useAoe = isMain && isAoeRound && gameData.mainAoeDice && gameData.mainAoeDice.trim() !== '';
-
-                if (useAoe) {
-                    let aoeRes = rollCustomDicePure(gameData.mainAoeDice);
-                    logMessage(`[<span class="tag-atk" style="color:var(--danger)">특수 패턴 발동</span>] 5의 배수 라운드 도래! ${enemy.name}이(가) <b>전체 단체 공격</b>을 시전합니다! (공용 다이스: <span class="dice-highlight">${aoeRes.detail}</span> = ${aoeRes.value} 피해, 전원 동일 적용)`, 'enemy');
-                    activeChars.forEach(t => hitList.push({ target: t, damage: aoeRes.value }));
-                } else {
-                    if (isMain && isAoeRound) {
-                        logMessage(`[<span class="tag-atk">알림</span>] ${enemy.name}의 단체 공격 다이스가 비어있어 이번 5라운드는 일반 공격으로 대체합니다.`, 'system');
-                    }
-                    let targetCount = Math.min(enemy.targetCount, activeChars.length);
-                    let shuffled = [...activeChars].sort(() => 0.5 - Math.random());
-                    let targets = shuffled.slice(0, targetCount);
-                    targets.forEach(t => {
-                        let res = rollCustomDicePure(enemy.dice);
-                        logMessage(`[<span class="tag-atk">에너미 공격</span>] ${enemy.name}이(가) [${t.name}]에게 (다이스: <span class="dice-highlight">${res.detail}</span> = ${res.value} 피해) 데미지를 넣음`, 'enemy');
-                        hitList.push({ target: t, damage: res.value });
-                    });
-                }
-            });
-
-            let assignments = resolveDefenseAssignments(activeChars, hitList);
-
-            hitList.forEach(hit => {
-                let protector = assignments[hit.target.id];
-                let res;
-                if (protector) {
-                    res = processCheongjukDefense(protector, hit.target, hit.damage);
-                    // 배정된 청죽은 이 라운드 내 이 target에만 사용되었으므로, 동일 target에 대한 후속 히트는 보호 대상에서 제외
-                    delete assignments[hit.target.id];
-                } else {
-                    let choice = computeSelfBestOption(hit.target, hit.damage);
-                    let riskNote = choice.riskFlagged
-                        ? ` (실패 시 위험 감지 -> 보정값: 회피 ${choice.dodgeAdj.toFixed(1)} / 반격 ${choice.counterAdj.toFixed(1)})`
-                        : '';
-                    logMessage(`[<span class="tag-judge">대응 판단</span>] ${hit.target.name}: 회피 기대값 ${choice.dodgeValue.toFixed(1)} (변동성 페널티 -${choice.dodgePenalty.toFixed(1)}) vs 반격 기대값 ${choice.counterValue.toFixed(1)} (변동성 페널티 -${choice.counterPenalty.toFixed(1)})${riskNote} -> <b>${choice.type}</b> 선택`, 'system');
-                    if (choice.type === '반격') {
-                        res = processCounter(hit.target, hit.damage);
-                    } else {
-                        res = processDodge(hit.target, hit.damage);
-                    }
-                }
-                hit.target.hp = Math.max(0, hit.target.hp - res.finalDamage);
-            });
-
-            renderUI();
-            if (checkGameOver()) return;
-
-            gameData.phaseStep = 2;
-            document.getElementById('next-btn').innerText = '▶ 이성 점검 및 라운드 종료';
-            document.getElementById('phase-indicator').innerText = '이성 점검 대기 중';
-
-        } else if (gameData.phaseStep === 2) {
-            // STEP 2: 이성 점검 (메인 에너미 전용, 각자 개별 굴림)
-            logDivider(`제 ${gameData.round} 라운드 - 이성 점검 및 정리`);
-
-            let sanityDiceStr = gameData.mainSanityDice || '1d10';
-
-            gameData.characters.forEach(char => {
-                if (char.hp <= 0) return;
-                if (char.stunned > 0) {
-                    char.stunned--;
-                    logMessage(`[이성 점검] ${char.name} 기절 지속 (남은 턴: ${char.stunned})`, 'system');
-                    return;
-                }
-                let lossRes = rollCustomDicePure(sanityDiceStr);
-                let loss = lossRes.value;
-                char.sanity = Math.max(0, char.sanity - loss);
-                logMessage(`[이성 점검] ${char.name} 이성 체크 (다이스: ${sanityDiceStr}, 눈금: <span class="dice-highlight">${lossRes.detail}</span>) -> 이성 -${loss} (현재: ${char.sanity}/${char.maxSanity})`, 'system');
-
-                if (char.sanity === 0) {
-                    char.stunned = 2;
-                    char.sanity = 15;
-                    logMessage(`[폭주 경고] ${char.name} 이성 상실로 2턴간 모든 선언 불가! 이후 이성 15 회복.`, 'danger');
-                }
-            });
-
-            renderUI();
-            gameData.round++;
-            gameData.phaseStep = 0;
-            document.getElementById('next-btn').innerText = '▶ 공격 페이즈 진행';
-            document.getElementById('phase-indicator').innerText = '공격 페이즈 대기 중';
-            logDivider(`제 ${gameData.round - 1} 라운드 종료`);
-        }
-    }
-
-    function processCheongjukDefense(protector, target, damage) {
-        let buffData = gameData.activeBuffs[protector.id];
-        let buff = buffData ? buffData.bonus : 0;
-        let buffNotice = buff > 0 ? ` [<span class="tag-buff">보조 버프 적용: +${buff} (by ${buffData.source})</span>]` : '';
-
-        let lvl = protector.stats.ability + buff;
-        let cfg = getDiceConfig(CHEONGJUK_DEF_TABLE, lvl);
-        let shieldRes = rollDiceDetailed(cfg.count, cfg.sides);
-        let shieldVal = shieldRes.total + cfg.mod;
-        let detailText = `[${shieldRes.rolls.join(', ')}] + ${cfg.mod}`;
-
-        let isSelf = protector.id === target.id;
-        let label = isSelf ? '자신' : `${target.name} (대리 방어)`;
-        logMessage(`[<span class="tag-def">대응 선언</span>] [${protector.name} > ${label} / 대응(이능(방어)) / 이능스탯 ${lvl}]${buffNotice}`, 'party');
-        logMessage(`└ [<span class="tag-def">방어</span>] 눈금: <span class="dice-highlight">${detailText}</span> -> 경감 ${shieldVal}`, 'party');
-
-        let crit = checkCrit(protector);
-        if (crit.success) {
-            let critBonus = rollCritBonus(protector);
-            shieldVal += critBonus.bonus;
-            logMessage(`└ [<span class="tag-crit-succ">크리티컬 성공</span>] 판정 눈금: <span class="dice-highlight">[${crit.roll.rolls.join(', ')}]</span> (> 기준 ${crit.threshold}) | 추가 경감: <span class="dice-highlight">${critBonus.detail}</span> (+${critBonus.bonus})`, 'party');
-        } else {
-            logMessage(`└ [<span class="tag-crit-fail">크리티컬 실패</span>] 판정 눈금: <span class="dice-highlight">[${crit.roll.rolls.join(', ')}]</span> (<= 기준 ${crit.threshold})`, 'party');
-        }
-
-        let finalDamage = Math.max(0, damage - shieldVal);
-        logMessage(`└ 최종 피해값 ${finalDamage}. (원 피해 ${damage} - 경감 ${shieldVal})`, 'party');
-        return { finalDamage };
-    }
-
-    function avgDiceValue(cfg) {
-        return cfg.count * (cfg.sides + 1) / 2 + cfg.mod;
-    }
-
+    function avgDiceValue(cfg) { return cfg.count * (cfg.sides + 1) / 2 + cfg.mod; }
     function expectedProtectValueFor(protector, damage) {
-        let buffData = gameData.activeBuffs[protector.id];
-        let buff = buffData ? buffData.bonus : 0;
-        let lvl = protector.stats.ability + buff;
-        let cfg = getDiceConfig(CHEONGJUK_DEF_TABLE, lvl);
+        let buffData = gameData.activeBuffs[protector.id]; let buff = buffData ? buffData.bonus : 0;
+        let lvl = protector.stats.ability + buff; let cfg = getDiceConfig(CHEONGJUK_DEF_TABLE, lvl);
         let avgShield = avgDiceValue(cfg);
-
         let luck = Math.min(5, Math.max(1, protector.stats.luck));
-        let critThreshold = { 1: 9, 2: 8, 3: 7, 4: 6, 5: 5 }[luck] || 7;
+        let critThreshold = {1:9,2:8,3:7,4:6,5:5}[luck] || 7;
         let critProb = (10 - critThreshold) / 10;
         let critCfg = CRIT_BONUS_TABLE['청죽'][luck];
         let avgCritBonus = critCfg.c * (critCfg.s + 1) / 2 + critCfg.m;
-
         let expectedShield = avgShield + critProb * avgCritBonus;
         return Math.min(damage, expectedShield);
     }
 
     function computeSelfBestOption(char, damage) {
-        let dodgeThreshold = { 1: 80, 2: 75, 3: 70, 4: 65, 5: 60 }[char.stats.dex] || 70;
+        let dodgeThreshold = {1:80,2:75,3:70,4:65,5:60}[char.stats.dex] || 70;
         let dodgeProb = (100 - dodgeThreshold) / 100;
         let dodgeValue = dodgeProb * damage;
         let dodgeStdDev = damage * Math.sqrt(dodgeProb * (1 - dodgeProb));
         let dodgePenalty = RISK_AVERSION_COEFF * dodgeStdDev;
 
-        let counterThreshold = { 1: 7, 2: 6, 3: 5, 4: 4, 5: 3 }[char.stats.luck] || 5;
+        let counterThreshold = {1:7,2:6,3:5,4:4,5:3}[char.stats.luck] || 5;
         let counterProb = (10 - counterThreshold) / 10;
-        let avgCounterDmg = (char.position === '매화')
-            ? avgDiceValue(getDiceConfig(MAEHWA_ATK_TABLE, char.stats.ability))
-            : avgDiceValue(getDiceConfig(STR_TABLE, char.stats.str));
+        let avgCounterDmg = (char.position === '매화') ? avgDiceValue(getDiceConfig(MAEHWA_ATK_TABLE, char.stats.ability)) : avgDiceValue(getDiceConfig(STR_TABLE, char.stats.str));
         let counterOutcomeValue = damage + avgCounterDmg;
         let counterValue = counterProb * counterOutcomeValue;
         let counterStdDev = counterOutcomeValue * Math.sqrt(counterProb * (1 - counterProb));
@@ -1150,48 +904,233 @@
         let dodgeAdj = dodgeValue - dodgePenalty - (1 - dodgeProb) * riskPenalty(damage);
         let counterAdj = counterValue - counterPenalty - (1 - counterProb) * riskPenalty(damage);
         let riskFlagged = riskPenalty(damage) > 0;
-
         let type = counterAdj >= dodgeAdj ? '반격' : '회피';
-        return {
-            type, dodgeValue, counterValue, dodgeAdj, counterAdj, riskFlagged,
-            dodgePenalty, counterPenalty,
-            value: Math.max(dodgeAdj, counterAdj)
-        };
+        return { type, dodgeValue, counterValue, dodgeAdj, counterAdj, riskFlagged, dodgePenalty, counterPenalty, value: Math.max(dodgeAdj, counterAdj) };
     }
 
-    function resolveDefenseAssignments(activeChars, hitList) {
-        let availableProtectors = activeChars.filter(c => c.position === '청죽' && c.hp > 0);
-        let pendingHits = [...hitList];
-        let selfBestMap = {};
-        hitList.forEach(h => { selfBestMap[h.target.id] = computeSelfBestOption(h.target, h.damage); });
+    // ====== 페이즈 진행 ======
+    function executeNextPhase() {
+        if (getAliveEnemies().length === 0) { alert('이미 모든 에너미를 토벌하였습니다.'); return; }
 
-        let assignments = {};
-
-        while (availableProtectors.length > 0 && pendingHits.length > 0) {
-            let best = null;
-            availableProtectors.forEach(p => {
-                pendingHits.forEach(h => {
-                    let protectVal = expectedProtectValueFor(p, h.damage);
-                    let gain = protectVal - selfBestMap[h.target.id].value;
-                    if (gain > 0 && (!best || gain > best.gain)) {
-                        best = { protector: p, hit: h, gain };
-                    }
-                });
-            });
-            if (!best) break;
-            assignments[best.hit.target.id] = best.protector;
-            availableProtectors = availableProtectors.filter(p => p.id !== best.protector.id);
-            pendingHits = pendingHits.filter(h => h.target.id !== best.hit.target.id);
+        let activeCharsForAction = gameData.characters.filter(c => c.hp > 0 && c.stunned === 0);
+        if (gameData.phaseStep === 0 && activeCharsForAction.length === 0) {
+            logMessage('[경고] 행동 가능한 캐릭터가 없습니다. 파티 행동은 건너뜁니다.', 'system');
         }
 
-        return assignments;
+        if (gameData.phaseStep === 0) {
+            // 공격 페이즈
+            logDivider(`제 ${gameData.round} 라운드 - 공격 페이즈`);
+            let partyDexSum = activeCharsForAction.reduce((s,c)=>s+c.stats.dex,0);
+            let enemyDexRef = getLowestHpEnemy() ? getLowestHpEnemy().dex : 0;
+            let firstTurn = partyDexSum >= enemyDexRef ? "파티 선공" : "에너미 선공";
+            logMessage(`[<span class="tag-sup">선후공 판정</span>] 파티 민첩 총합(${partyDexSum}) vs 최우선 타격 에너미 민첩(${enemyDexRef}) -> <b>${firstTurn}</b>`, 'system');
+
+            let sortedChars = sortCharacters(activeCharsForAction);
+            let activeBuffs = {};
+            let supportChars = sortedChars.filter(c => c.position === '난초(보조)');
+            let normalChars = sortedChars.filter(c => c.position !== '난초(보조)');
+
+            supportChars.forEach(char => {
+                let lvl = char.stats.ability;
+                let buffVal = 0; let detailStr = "";
+                if (lvl===1){buffVal=1;detailStr="고정 1";}
+                else if (lvl===2){let r=rollDiceDetailed(1,2);buffVal=r.total;detailStr=`[${r.rolls.join(', ')}]`;}
+                else if (lvl===3){let r=rollDiceDetailed(1,2);buffVal=r.total+1;detailStr=`[${r.rolls.join(', ')}] + 1`;}
+                else if (lvl===4){let r=rollDiceDetailed(1,3);buffVal=r.total+1;detailStr=`[${r.rolls.join(', ')}] + 1`;}
+                else if (lvl===5){let r=rollDiceDetailed(2,2);buffVal=r.total+1;detailStr=`[${r.rolls.join(', ')}] + 1`;}
+                let target = normalChars[Math.floor(Math.random()*normalChars.length)] || char;
+                logMessage(`[<span class="tag-sup">보조 선언</span>] [${char.name} > ${target.name} / 이능(보조) / 이능스탯 ${lvl}] (눈금: <span class="dice-highlight">${detailStr}</span>) -> 대상 스탯 +${buffVal} 부여`, 'party');
+                let crit = checkCrit(char);
+                if (crit.success) {
+                    let critBonus = rollCritBonus(char);
+                    buffVal += critBonus.bonus;
+                    logMessage(`└ [<span class="tag-crit-succ">크리티컬 성공</span>] 판정 눈금: <span class="dice-highlight">[${crit.roll.rolls.join(', ')}]</span> | 추가 보정: <span class="dice-highlight">${critBonus.detail}</span> (+${critBonus.bonus}) -> 최종 +${buffVal}`, 'party');
+                } else {
+                    logMessage(`└ [<span class="tag-crit-fail">크리티컬 실패</span>] 판정 눈금: <span class="dice-highlight">[${crit.roll.rolls.join(', ')}]</span>`, 'party');
+                }
+                activeBuffs[target.id] = { bonus: buffVal, source: char.name };
+            });
+            gameData.activeBuffs = activeBuffs;
+
+            // 파티 행동
+            sortedChars.forEach(char => {
+                if (char.position === '난초(보조)') return;
+                let buffData = activeBuffs[char.id]; let buff = buffData ? buffData.bonus : 0;
+                let buffNotice = buff>0 ? ` [<span class="tag-buff">보조 버프 적용: +${buff} (by ${buffData.source})</span>]` : '';
+
+                if (char.position === '매화') {
+                    let target = getLowestHpEnemy(); if (!target) return;
+                    let lvl = char.stats.ability + buff; let cfg = getDiceConfig(MAEHWA_ATK_TABLE, lvl);
+                    let diceRes = rollDiceDetailed(cfg.count, cfg.sides); let dmg = diceRes.total + cfg.mod;
+                    let detailText = `[${diceRes.rolls.join(', ')}] + ${cfg.mod}`;
+                    logMessage(`[<span class="tag-atk">행동 선언</span>] [${char.name} > ${target.name} / 이능(공격) / 이능스탯 ${lvl}]${buffNotice}`, 'party');
+                    logMessage(`└ [<span class="tag-atk">데미지</span>] 눈금: <span class="dice-highlight">${detailText}</span> -> ${target.name}에게 ${dmg} 피해`, 'party');
+                    let crit = checkCrit(char);
+                    if (crit.success) {
+                        let critBonus = rollCritBonus(char);
+                        dmg += critBonus.bonus;
+                        logMessage(`└ [<span class="tag-crit-succ">크리티컬 성공</span>] 판정 눈금: <span class="dice-highlight">[${crit.roll.rolls.join(', ')}]</span> | 추가 데미지: <span class="dice-highlight">${critBonus.detail}</span> (+${critBonus.bonus})`, 'party');
+                    }
+                    target.hp = Math.max(0, target.hp - dmg);
+                    if (target.hp <= 0) logMessage(`[<span class="tag-dead">처치</span>] ${target.name} 토벌 완료!`, 'system');
+                } else if (char.position === '난초(회복)') {
+                    let lvl = char.stats.ability + buff; let cfg = getDiceConfig(NANCHO_HEAL_TABLE, lvl);
+                    let diceRes = rollDiceDetailed(cfg.count, cfg.sides); let healing = diceRes.total + cfg.mod;
+                    let detailText = `[${diceRes.rolls.join(', ')}] + ${cfg.mod}`;
+                    let lowest = [...gameData.characters].filter(c=>c.hp>0).sort((a,b)=> (a.hp/a.maxHp)-(b.hp/b.maxHp))[0];
+                    logMessage(`[<span class="tag-heal">행동 선언</span>] [${char.name} > ${lowest.name} / 이능(회복) / 이능스탯 ${lvl}]${buffNotice}`, 'party');
+                    logMessage(`└ [<span class="tag-heal">회복</span>] 눈금: <span class="dice-highlight">${detailText}</span> -> ${lowest.name} 체력 ${healing} 회복`, 'party');
+                    let crit = checkCrit(char);
+                    if (crit.success) {
+                        let critBonus = rollCritBonus(char);
+                        healing += critBonus.bonus;
+                        logMessage(`└ [<span class="tag-crit-succ">크리티컬 성공</span>] 판정 눈금: <span class="dice-highlight">[${crit.roll.rolls.join(', ')}]</span> | 추가 회복: <span class="dice-highlight">${critBonus.detail}</span> (+${critBonus.bonus})`, 'party');
+                    }
+                    lowest.hp = Math.min(lowest.maxHp, lowest.hp + healing);
+                } else {
+                    let target = getLowestHpEnemy(); if (!target) return;
+                    let lvl = char.stats.str; let cfg = getDiceConfig(STR_TABLE, lvl);
+                    let diceRes = rollDiceDetailed(cfg.count, cfg.sides); let dmg = diceRes.total + cfg.mod;
+                    let detailText = `[${diceRes.rolls.join(', ')}] + ${cfg.mod}`;
+                    logMessage(`[<span class="tag-atk">행동 선언</span>] [${char.name} > ${target.name} / 근력 / 근력스탯 ${lvl}]`, 'party');
+                    logMessage(`└ [<span class="tag-atk">데미지</span>] 눈금: <span class="dice-highlight">${detailText}</span> -> ${target.name}에게 ${dmg} 피해`, 'party');
+                    target.hp = Math.max(0, target.hp - dmg);
+                    if (target.hp <= 0) logMessage(`[<span class="tag-dead">처치</span>] ${target.name} 토벌 완료!`, 'system');
+                }
+            });
+
+            renderUI();
+            if (checkGameOver()) return;
+            gameData.phaseStep = 1;
+            document.getElementById('next-btn').innerText = '▶ 대응 페이즈 진행';
+            document.getElementById('phase-indicator').innerText = '대응 페이즈 대기 중';
+        } else if (gameData.phaseStep === 1) {
+            // 대응 페이즈 (에너미 공격)
+            logDivider(`제 ${gameData.round} 라운드 - 대응 페이즈`);
+            let isAoeRound = (gameData.round % 5 === 0);
+            let hitList = [];
+            let targetableChars = gameData.characters.filter(c => c.hp > 0);
+
+            getAliveEnemies().forEach(enemy => {
+                let isMain = isMainEnemy(enemy);
+                let useAoe = isMain && isAoeRound && gameData.mainAoeDice && gameData.mainAoeDice.trim() !== '';
+                if (useAoe) {
+                    let aoeRes = rollCustomDicePure(gameData.mainAoeDice);
+                    logMessage(`[<span class="tag-atk" style="color:var(--danger)">특수 패턴 발동</span>] 5의 배수 라운드! ${enemy.name}이(가) 전체 단체 공격 (${aoeRes.detail} = ${aoeRes.value})`, 'enemy');
+                    targetableChars.forEach(t => hitList.push({ target: t, damage: aoeRes.value, source: enemy }));
+                } else {
+                    let rounds = enemy.attackRounds || 1;
+                    for (let r = 0; r < rounds; r++) {
+                        for (let pIndex = 0; pIndex < (enemy.attackPattern || []).length; pIndex++) {
+                            let pattern = enemy.attackPattern[pIndex] || {};
+                            let targetCount = pattern.targets || enemy.targetCount || 1;
+                            let allowRepeat = !!pattern.allowRepeat;
+                            let aliveTargets = targetableChars.slice();
+                            if (aliveTargets.length === 0) break;
+                            let chosen = [];
+                            if (allowRepeat) {
+                                for (let i = 0; i < targetCount; i++) chosen.push(aliveTargets[i % aliveTargets.length]);
+                            } else {
+                                chosen = aliveTargets.sort((a,b)=>a.hp-b.hp).slice(0,targetCount);
+                            }
+                            chosen.forEach(tgt => {
+                                let diceSource = pattern.dice || enemy.dice || '1d20+5';
+                                let res = rollCustomDicePure(diceSource);
+                                logMessage(`[<span class="tag-atk">에너미 공격</span>] ${enemy.name} -> ${tgt.name} (다이스: <span class="dice-highlight">${res.detail}</span> = ${res.value})`, 'enemy');
+                                hitList.push({ target: tgt, damage: res.value, source: enemy });
+                            });
+                        }
+                    }
+                }
+            });
+
+            // 보호자 자동 할당 (청죽)
+            let protectorPool = gameData.characters.filter(c => c.hp > 0 && c.stunned === 0 && c.position === '청죽');
+            let assignments = resolveDefenseAssignments(protectorPool, hitList);
+
+            // 히트 처리
+            hitList.forEach(hit => {
+                let protector = assignments[hit.target.id];
+                let result;
+                if (protector) {
+                    result = processCheongjukDefense(protector, hit.target, hit.damage);
+                } else if (hit.target.stunned > 0) {
+                    // 기절 대상: 수동모드에서 청죽이 'proxy:대상'으로 대리방어 선언했는지 확인
+                    let proxyDefender = null;
+                    if (gameData.settings.manualMode) {
+                        proxyDefender = gameData.characters.find(c => c.position === '청죽' && c.hp > 0 && c.stunned === 0 && gameData.pendingActions[c.id] === ('proxy:' + hit.target.id));
+                    }
+                    if (proxyDefender) {
+                        result = processCheongjukDefense(proxyDefender, hit.target, hit.damage);
+                    } else {
+                        logMessage(`[타깃: ${hit.target.name}] 기절 상태이므로 직접 대응 불가. (대리방어 없음)`, 'party');
+                        result = { finalDamage: hit.damage };
+                    }
+                } else {
+                    // 비기절 대상: 수동 선언 우선
+                    result = resolveIncomingDamage(hit.target, hit.damage, hit.source);
+                }
+                hit.target.hp = Math.max(0, hit.target.hp - (result.finalDamage || 0));
+                if (hit.target.hp <= 0) {
+                    hit.target.stunned = 0;
+                    logMessage(`[<span class="tag-dead">전투불능</span>] ${hit.target.name} 쓰러짐`, 'system');
+                }
+            });
+
+            renderUI();
+            if (checkGameOver()) return;
+            gameData.phaseStep = 2;
+            document.getElementById('next-btn').innerText = '▶ 이성 점검 및 라운드 종료';
+            document.getElementById('phase-indicator').innerText = '이성 점검 대기 중';
+        } else if (gameData.phaseStep === 2) {
+            // 이성 점검
+            logDivider(`제 ${gameData.round} 라운드 - 이성 점검 및 정리`);
+            let sanityDiceStr = gameData.mainSanityDice || '1d10';
+            gameData.characters.forEach(char => {
+                if (char.hp <= 0) return;
+                if (char.stunned > 0) { char.stunned--; logMessage(`[이성 점검] ${char.name} 기절 지속 (남은 턴: ${char.stunned})`, 'system'); return; }
+                let lossRes = rollCustomDicePure(sanityDiceStr); let loss = lossRes.value;
+                char.sanity = Math.max(0, char.sanity - loss);
+                logMessage(`[이성 점검] ${char.name} 이성 체크 (다이스: ${sanityDiceStr}, 눈금: <span class="dice-highlight">${lossRes.detail}</span>) -> 이성 -${loss} (현재: ${char.sanity}/${char.maxSanity})`, 'system');
+                if (char.sanity === 0) {
+                    char.stunned = 2; char.sanity = 15;
+                    logMessage(`[폭주 경고] ${char.name} 이성 상실로 2턴간 모든 선언 불가! 이후 이성 15 회복.`, 'danger');
+                }
+            });
+            renderUI();
+            gameData.round++;
+            gameData.phaseStep = 0;
+            document.getElementById('next-btn').innerText = '▶ 공격 페이즈 진행';
+            document.getElementById('phase-indicator').innerText = '공격 페이즈 대기 중';
+            logDivider(`제 ${gameData.round - 1} 라운드 종료`);
+        }
+    }
+
+    // ====== 대응 처리: 방어/회피/반격 ======
+    function processCheongjukDefense(protector, target, damage) {
+        let buffData = gameData.activeBuffs[protector.id]; let buff = buffData ? buffData.bonus : 0;
+        let lvl = protector.stats.ability + buff; let cfg = getDiceConfig(CHEONGJUK_DEF_TABLE, lvl);
+        let shieldRes = rollDiceDetailed(cfg.count, cfg.sides); let shieldVal = shieldRes.total + cfg.mod;
+        let detailText = `[${shieldRes.rolls.join(', ')}] + ${cfg.mod}`;
+        let isSelf = protector.id === target.id;
+        let label = isSelf ? '자신' : `${target.name} (대리 방어)`;
+        logMessage(`[<span class="tag-def">대응 선언</span>] [${protector.name} > ${label} / 대응(이능(방어)) / 이능스탯 ${lvl}]`, 'party');
+        logMessage(`└ [<span class="tag-def">방어</span>] 눈금: <span class="dice-highlight">${detailText}</span> -> 경감 ${shieldVal}`, 'party');
+        let crit = checkCrit(protector);
+        if (crit.success) {
+            let critBonus = rollCritBonus(protector);
+            shieldVal += critBonus.bonus;
+            logMessage(`└ [<span class="tag-crit-succ">크리티컬 성공</span>] 판정 눈금: <span class="dice-highlight">[${crit.roll.rolls.join(', ')}]</span> | 추가 경감: <span class="dice-highlight">${critBonus.detail}</span> (+${critBonus.bonus})`, 'party');
+        }
+        let finalDamage = Math.max(0, damage - shieldVal);
+        logMessage(`└ 최종 피해값 ${finalDamage}. (원 피해 ${damage} - 경감 ${shieldVal})`, 'party');
+        return { finalDamage };
     }
 
     function processDodge(char, damage) {
-        let threshold = { 1: 80, 2: 75, 3: 70, 4: 65, 5: 60 }[char.stats.dex] || 70;
-        let roll = rollDiceDetailed(1, 100);
+        let threshold = {1:80,2:75,3:70,4:65,5:60}[char.stats.dex] || 70;
+        let roll = rollDiceDetailed(1,100);
         let success = roll.total > threshold;
-
         logMessage(`[<span class="tag-def">대응 선언</span>] [${char.name} > 자신 / 대응(회피) / 민첩스탯 ${char.stats.dex}]`, 'party');
         if (success) {
             logMessage(`└ [<span class="tag-succ">회피 성공</span>] 판정 눈금: <span class="dice-highlight">${roll.total}</span> (> 기준 ${threshold}) -> 피해 무효화`, 'party');
@@ -1203,65 +1142,180 @@
     }
 
     function processCounter(char, damage) {
-        let threshold = { 1: 7, 2: 6, 3: 5, 4: 4, 5: 3 }[char.stats.luck] || 5;
-        let roll = rollDiceDetailed(1, 10);
-        let success = roll.total > threshold;
-
+        // 반격(직접): 기절자면 불가
+        if (char.stunned > 0) {
+            logMessage(`└ [<span class="tag-fail">반격 불가</span>] ${char.name}는 기절 상태라 직접 반격할 수 없습니다.`, 'party');
+            return { finalDamage: damage };
+        }
+        let threshold = {1:7,2:6,3:5,4:4,5:3}[char.stats.luck] || 5;
+        let roll = rollDiceDetailed(1,10); let success = roll.total > threshold;
         logMessage(`[<span class="tag-def">대응 선언</span>] [${char.name} > 자신 / 대응(반격) / 행운스탯 ${char.stats.luck}]`, 'party');
         if (!success) {
             logMessage(`└ [<span class="tag-fail">반격 실패</span>] 판정 눈금: <span class="dice-highlight">${roll.total}</span> (<= 기준 ${threshold}) -> 최종 피해값 ${damage}`, 'party');
             return { finalDamage: damage };
         }
-
         let target = getLowestHpEnemy();
-        let counterDmg;
-        let detailText;
-        if (char.position === '매화') {
-            let cfg = getDiceConfig(MAEHWA_ATK_TABLE, char.stats.ability);
+        let counterDmg, detailText;
+        let attackerForDmg = char;
+        if (attackerForDmg.position === '매화') {
+            let cfg = getDiceConfig(MAEHWA_ATK_TABLE, attackerForDmg.stats.ability);
             let r = rollDiceDetailed(cfg.count, cfg.sides);
-            counterDmg = r.total + cfg.mod;
-            detailText = `[${r.rolls.join(', ')}] + ${cfg.mod}`;
+            counterDmg = r.total + cfg.mod; detailText = `[${r.rolls.join(', ')}] + ${cfg.mod}`;
         } else {
-            let cfg = getDiceConfig(STR_TABLE, char.stats.str);
+            let cfg = getDiceConfig(STR_TABLE, attackerForDmg.stats.str);
             let r = rollDiceDetailed(cfg.count, cfg.sides);
-            counterDmg = r.total + cfg.mod;
-            detailText = `[${r.rolls.join(', ')}] + ${cfg.mod}`;
+            counterDmg = r.total + cfg.mod; detailText = `[${r.rolls.join(', ')}] + ${cfg.mod}`;
         }
-
         if (target) {
             target.hp = Math.max(0, target.hp - counterDmg);
-            logMessage(`└ [<span class="tag-succ">반격 성공</span>] 판정 눈금: <span class="dice-highlight">${roll.total}</span> (> 기준 ${threshold}) -> 피해 무효화 + 반격 데미지 <span class="dice-highlight">${detailText}</span> = ${counterDmg} (${target.name}에게 적용)`, 'party');
-            if (target.hp <= 0) {
-                logMessage(`[<span class="tag-dead">처치</span>] ${target.name} 토벌 완료!`, 'system');
-            }
+            logMessage(`└ [<span class="tag-succ">반격 성공</span>] 판정 눈금: <span class="dice-highlight">${roll.total}</span> -> 피해 무효화 + 반격 데미지 <span class="dice-highlight">${detailText}</span> = ${counterDmg} (${target.name}에게 적용)`, 'party');
+            if (target.hp <= 0) logMessage(`[<span class="tag-dead">처치</span>] ${target.name} 토벌 완료!`, 'system');
         } else {
-            logMessage(`└ [<span class="tag-succ">반격 성공</span>] 판정 눈금: <span class="dice-highlight">${roll.total}</span> (> 기준 ${threshold}) -> 피해 무효화 (반격할 대상 없음)`, 'party');
+            logMessage(`└ [<span class="tag-succ">반격 성공</span>] 판정 눈금: <span class="dice-highlight">${roll.total}</span> -> 피해 무효화 (반격할 대상 없음)`, 'party');
         }
         return { finalDamage: 0 };
     }
 
+    // resolveIncomingDamage: 수동 선언('반격','회피','이능(방어)') 우선, 기절은 직접 대응 불가
+    function resolveIncomingDamage(targetChar, damage, attacker) {
+        if (!targetChar || targetChar.hp <= 0) return { finalDamage: damage };
+        if (targetChar.stunned > 0) {
+            logMessage(`[타깃: ${targetChar.name}] 현재 기절 상태. 직접 대응 불가.`, 'party');
+            return { finalDamage: damage };
+        }
+        if (gameData.settings.manualMode) {
+            let action = gameData.pendingActions[targetChar.id];
+            if (action === '반격') return processCounter(targetChar, damage);
+            if (action === '회피') return processDodge(targetChar, damage);
+            if (action === '이능(방어)') {
+                if (targetChar.position === '청죽') {
+                    return processCheongjukDefense(targetChar, targetChar, damage);
+                } else {
+                    logMessage(`[경고] ${targetChar.name}은(는) 청죽이 아니므로 '이능(방어)' 선언이 무시됩니다.`, 'system');
+                }
+            }
+        }
+        // 자동 판단
+        let choice = computeSelfBestOption(targetChar, damage);
+        if (choice.type === '반격') return processCounter(targetChar, damage);
+        return processDodge(targetChar, damage);
+    }
+
+    // ====== 보호자 할당 (청죽) ======
+    function resolveDefenseAssignments(availableProtectors, hitList) {
+        let pendingHits = [...hitList];
+        let selfBestMap = {};
+        hitList.forEach(h => { selfBestMap[h.target.id] = computeSelfBestOption(h.target, h.damage); });
+        let assignments = {};
+        while (availableProtectors.length > 0 && pendingHits.length > 0) {
+            let best = null;
+            availableProtectors.forEach(p => {
+                pendingHits.forEach(h => {
+                    let protectVal = expectedProtectValueFor(p, h.damage);
+                    let gain = protectVal - selfBestMap[h.target.id].value;
+                    if (gain > 0 && (!best || gain > best.gain)) best = { protector: p, hit: h, gain };
+                });
+            });
+            if (!best) break;
+            assignments[best.hit.target.id] = best.protector;
+            availableProtectors = availableProtectors.filter(p => p.id !== best.protector.id);
+            pendingHits = pendingHits.filter(h => h.target.id !== best.hit.target.id);
+        }
+        return assignments;
+    }
+
+    // ====== 종료/리셋 ======
     function checkGameOver() {
-        if (getAliveEnemies().length === 0) {
-            logMessage(`[전투 승리] 모든 에너미를 토벌하였습니다!`, 'system');
-            alert('레이드 승리!');
-            return true;
-        }
-        if (gameData.characters.filter(c => c.hp > 0).length === 0) {
-            logMessage(`[파티 전멸] 모든 캐릭터가 쓰러졌습니다.`, 'danger');
-            alert('파티 전멸...');
-            return true;
-        }
+        if (getAliveEnemies().length === 0) { logMessage(`[전투 승리] 모든 에너미를 토벌하였습니다!`, 'system'); alert('레이드 승리!'); return true; }
+        if (gameData.characters.filter(c=>c.hp>0).length === 0) { logMessage(`[파티 전멸] 모든 캐릭터가 쓰러졌습니다.`, 'danger'); alert('파티 전멸...'); return true; }
         return false;
     }
+    function resetGame() { applyConfiguration(); }
 
-    function resetGame() {
-        applyConfiguration();
+    // ====== 수동 UI ======
+    function ensureManualControlsElement() {
+        if (!document.getElementById('manual-controls')) {
+            let container = document.createElement('div'); container.id = 'manual-controls';
+            container.style.padding='8px'; container.style.margin='8px'; container.style.border='2px dashed #888';
+            let configArea = document.querySelector('.panel');
+            if (configArea && configArea.parentNode) configArea.parentNode.insertBefore(container, configArea.nextSibling);
+            else document.body.insertBefore(container, document.body.firstChild);
+        }
     }
 
-    window.onload = () => {
-        initConfigUI();
-        renderUI();
-    };
+    function toggleManualMode() {
+        gameData.settings.manualMode = !gameData.settings.manualMode;
+        logMessage(`[시스템] 수동 모드 ${gameData.settings.manualMode ? '활성화' : '비활성화'}`, 'system');
+        renderManualControls(); renderUI();
+    }
+
+    function renderManualControls() {
+        let container = document.getElementById('manual-controls'); if (!container) return;
+        container.innerHTML = '';
+        let toggleBtn = document.createElement('button'); toggleBtn.textContent = gameData.settings.manualMode ? '수동 모드: ON (클릭하여 OFF)' : '수동 모드: OFF (클릭하여 ON)'; toggleBtn.onclick = toggleManualMode;
+        container.appendChild(toggleBtn);
+
+        if (!gameData.settings.manualMode) {
+            let summary = document.createElement('div'); summary.style.marginTop='8px'; summary.style.color='var(--text-muted)';
+            summary.textContent = '수동 모드가 비활성화 되어 있습니다. 수동 선언은 불가능합니다.'; container.appendChild(summary);
+            let list = document.createElement('div'); list.style.marginTop='8px';
+            for (let id in gameData.pendingActions) {
+                let c = gameData.characters.find(x=>x.id===id);
+                if (c) { let e = document.createElement('div'); e.textContent = `${c.name}: ${gameData.pendingActions[id]}`; list.appendChild(e); }
+            }
+            container.appendChild(list);
+            return;
+        }
+
+        gameData.characters.forEach(c => {
+            let box = document.createElement('div'); box.className='manual-char-box'; box.style.border='1px solid #ccc'; box.style.margin='6px'; box.style.padding='6px';
+            let title = document.createElement('div'); title.innerHTML = `<b>${c.name}</b> (HP: ${c.hp}) 상태: ${c.stunned>0 ? '기절':'정상'}`; box.appendChild(title);
+
+            // 행동 버튼: 반격, 이능(방어), 회피, 패스
+            let actions = ['반격', '이능(방어)', '회피', '패스'];
+            actions.forEach(a => {
+                let btn = document.createElement('button'); btn.textContent = a; btn.style.marginRight='4px';
+                btn.onclick = () => {
+                    // 이능(방어)는 청죽만 실효 (선언은 가능하지만 경고)
+                    gameData.pendingActions[c.id] = a;
+                    logMessage(`[수동선언] ${c.name} -> ${a}`, 'system');
+                    renderManualControls(); renderUI();
+                };
+                if (gameData.pendingActions[c.id] === a) btn.style.background = '#def';
+                box.appendChild(btn);
+            });
+
+            // 대리방어(청죽 전용)
+            let proxyLabel = document.createElement('div'); proxyLabel.textContent = '대리방어(청죽 전용):'; box.appendChild(proxyLabel);
+            if (c.position === '청죽') {
+                gameData.characters.forEach(tgt => {
+                    if (tgt.id === c.id) return;
+                    let pbtn = document.createElement('button'); pbtn.textContent = '대리->' + tgt.name; pbtn.style.marginRight='4px';
+                    pbtn.onclick = () => {
+                        gameData.pendingActions[c.id] = 'proxy:' + tgt.id;
+                        logMessage(`[수동선언] ${c.name} -> 대리방어(대상: ${tgt.name})`, 'system');
+                        renderManualControls(); renderUI();
+                    };
+                    if (gameData.pendingActions[c.id] === ('proxy:'+tgt.id)) pbtn.style.background = '#def';
+                    box.appendChild(pbtn);
+                });
+            } else {
+                let hint = document.createElement('div'); hint.style.fontSize='0.8rem'; hint.style.color='var(--text-muted)'; hint.textContent = '대리방어는 청죽만 선언할 수 있습니다.'; box.appendChild(hint);
+            }
+
+            container.appendChild(box);
+        });
+
+        let execBtn = document.createElement('button'); execBtn.textContent = '선언 저장'; execBtn.style.marginTop='8px';
+        execBtn.onclick = ()=>{ logMessage('[수동모드] 선언이 저장되었습니다.', 'system'); renderUI(); };
+        container.appendChild(execBtn);
+        let clearBtn = document.createElement('button'); clearBtn.textContent = '선언 초기화'; clearBtn.className='btn-secondary'; clearBtn.style.marginLeft='8px';
+        clearBtn.onclick = ()=>{ gameData.pendingActions={}; logMessage('[수동모드] 모든 선언을 초기화했습니다.', 'system'); renderManualControls(); renderUI(); };
+        container.appendChild(clearBtn);
+    }
+
+    // 초기화 로드
+    window.onload = () => { initConfigUI(); ensureManualControlsElement(); renderManualControls(); renderUI(); };
 </script>
 
 </body>
