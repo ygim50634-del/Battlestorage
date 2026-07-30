@@ -246,6 +246,7 @@
         .tag-judge { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); padding: 1px 6px; border-radius: 4px; font-weight: 600; font-size: 0.8em; }
         .tag-main { background: rgba(234, 179, 8, 0.22); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.45); padding: 1px 6px; border-radius: 4px; font-weight: 700; font-size: 0.75em; }
         .tag-dead { background: rgba(100, 100, 100, 0.2); color: #9ca3af; border: 1px solid rgba(100, 100, 100, 0.4); padding: 1px 6px; border-radius: 4px; font-weight: 600; font-size: 0.75em; }
+        .tag-revive { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.45); padding: 1px 6px; border-radius: 4px; font-weight: 700; font-size: 0.75em; }
         .tag-stun { background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); padding: 1px 6px; border-radius: 4px; font-weight: 600; font-size: 0.75em; }
 
         .dice-highlight {
@@ -420,9 +421,11 @@
                         <button onclick="addEnemyRow()" class="btn-secondary" style="margin-top: 6px; font-size: 0.75rem; padding: 4px 10px;">+ 에너미 추가</button>
                         <div class="note-box">
                             다이스 표기는 <b>NdM</b>, <b>NdM+수치</b>, <b>NdM*배수+수치</b> 세 가지 형식을 지원합니다. (예: 2d60+20 / 2d2*10+30)<br>
-                            <b>공격 다이스 목록</b>은 콤마(,)로 여러 개를 적으면, 한 번에 여러 명을 타격할 때 대상마다 순서대로 다른 다이스가 적용됩니다. (대상수보다 다이스 개수가 적으면 앞에서부터 다시 반복 사용)<br>
-                            에너미가 여럿일 경우 파티는 항상 <b>체력이 가장 낮은 생존 에너미</b>부터 몰아서 공격합니다. 메인이 아닌 에너미는 단체공격/이성차감 없이 개별 공격만 합니다.<br>
-                            <b>디버프</b>는 지정한 라운드가 되면 파티 전원의 스탯을 그 라운드 한정으로 차감하거나(라운드 종료 시 원상복구), 그 라운드에 파티가 에너미에게 입히는 모든 피해(공격 데미지, 반격 데미지 포함)에 배율(%)을 곱합니다. 스탯 차감과 피해 배율은 함께 설정할 수도, 하나만 설정할 수도 있습니다.
+                            <b>공격 다이스 목록</b>은 콤마(,)로 여러 개를 적으면, 한 번에 여러 명을 타격할 때 대상마다 순서대로 다른 다이스가 적용됩니다. (대상수보다 다이스 개수가 적으면 앞에서부터 다시 반복 사용) <b>공란으로 비워두면 그 에너미는 이번 공격으로 피해를 주지 않습니다</b> — 대상 선정과 "에너미별 이성 차감 다이스"는 그대로 동작하므로, 피해 없이 이성만 깎는 에너미를 만들 수 있습니다.<br>
+                            <b>공격 대상 방식</b>으로 전체(대상수 무시)/랜덤 N명/이전 에너미 타격 대상 제외 N명/이전 에너미 타격 대상 중 N명을 고를 수 있습니다. "이전 에너미 타격 대상"은 같은 라운드 안에서 앞서 행동한 다른 에너미들이 이미 때린 대상을 기준으로 하며(대상 인원이 N명보다 적으면 나머지 조건에서 채웁니다), 이 에너미가 그 라운드의 첫 번째로 행동하는 에너미라면 아직 아무도 맞지 않은 상태이므로 실질적으로 전체 생존자 중에서 뽑힙니다.<br>
+                            에너미가 여럿일 경우 파티는 항상 <b>체력이 가장 낮은 생존 에너미</b>부터 몰아서 공격합니다. 메인 전용 "단체 공격/라운드 종료 이성 차감"과 별개로, <b>에너미별 이성 차감 다이스</b>를 설정하면 그 에너미가 실제로 때린 대상만 공격 즉시 추가로 이성을 잃습니다(메인 포함 모든 에너미에 설정 가능).<br>
+                            <b>디버프</b>는 지정한 라운드가 되면 대상(전체/랜덤 N명/이전 에너미 타격 대상 제외/이전 에너미 타격 대상만)의 스탯을 그 라운드 한정으로 차감하거나(라운드 종료 시 원상복구), 그 라운드에 파티가 에너미에게 입히는 모든 피해(공격 데미지, 반격 데미지 포함)에 배율(%)을 곱합니다. 스탯 차감과 피해 배율은 함께 설정할 수도, 하나만 설정할 수도 있습니다. "이전 에너미 타격 대상" 계열은 대응 페이즈에서 에너미가 순서대로 공격할 때 그 시점까지의 피격 기록을 보고 판정되므로, 파티가 먼저 행동하는 라운드에서는 이미 끝난 공격 페이즈 피해 배율에는 소급 적용되지 않습니다.<br>
+                            <b>부활</b>은 메인이 아닌 에너미에만 설정할 수 있습니다. 처치된 후 지정한 라운드 수가 지나면 지정한 체력 비율로 되살아나며, 부활을 기다리는 동안에는 레이드가 종료되지 않습니다.
                         </div>
                     </div>
                     <div>
@@ -472,7 +475,7 @@
                     <span id="phase-indicator" style="font-size: 0.75rem; color: var(--text-muted);">공격 페이즈 대기 중</span>
                 </h3>
                 <div id="log-box" class="log-box">
-                    <div class="log-entry log-system">[준비] 에너미별 라운드 디버프(스탯 차감/받는피해 배율), 레이드 종료 결과 요약 및 세션 내 기록 보관/다운로드, 자동·수동 모드, 기절/사망 구분, 대리 방어 규칙이 모두 반영된 버전입니다.</div>
+                    <div class="log-entry log-system">[준비] 디버프 대상 방식(전체/랜덤 N명/이전 에너미 타격 대상 제외·만), 에너미별 이성 차감 다이스, 처치된 비메인 에너미의 부활 기믹, 레이드 종료 결과 요약/기록, 자동·수동 모드, 기절/사망 구분, 대리 방어 규칙이 모두 반영된 버전입니다.</div>
                 </div>
             </div>
         </div>
@@ -573,8 +576,17 @@
 
     function hydrateEnemy(e) {
         e.maxHp = e.hp;
-        if (!e.diceList || e.diceList.length === 0) e.diceList = ['1d10'];
+        if (!e.diceList) e.diceList = [];
+        if (!e.attackTargetMode) e.attackTargetMode = 'random';
         if (!e.debuffs) e.debuffs = [];
+        e.debuffs.forEach(d => {
+            if (!d.targetMode) d.targetMode = 'all';
+            if (!d.randomCount) d.randomCount = 1;
+        });
+        if (typeof e.sanityDice !== 'string') e.sanityDice = '';
+        if (typeof e.reviveRounds !== 'number') e.reviveRounds = 0;
+        if (typeof e.reviveHpPercent !== 'number') e.reviveHpPercent = 100;
+        e.reviveAtRound = e.reviveAtRound || null;
         return e;
     }
     gameData.enemies = gameData.enemies.map(hydrateEnemy);
@@ -605,6 +617,17 @@
                     <label>발동 라운드
                         <input type="number" min="1" value="${d.round}" id="cfg-edebuff-${index}-${dIdx}-round" style="width:50px;">
                     </label>
+                    <label>대상 방식
+                        <select id="cfg-edebuff-${index}-${dIdx}-mode" style="width:150px;">
+                            <option value="all" ${(!d.targetMode || d.targetMode === 'all') ? 'selected' : ''}>전체</option>
+                            <option value="random" ${d.targetMode === 'random' ? 'selected' : ''}>랜덤 N명</option>
+                            <option value="excludePrevious" ${d.targetMode === 'excludePrevious' ? 'selected' : ''}>이전 에너미 타격 대상 제외</option>
+                            <option value="previousOnly" ${d.targetMode === 'previousOnly' ? 'selected' : ''}>이전 에너미 타격 대상만</option>
+                        </select>
+                    </label>
+                    <label>N(랜덤 전용)
+                        <input type="number" min="1" value="${d.randomCount || 1}" id="cfg-edebuff-${index}-${dIdx}-randomcount" style="width:45px;">
+                    </label>
                     <label>차감 스탯
                         <select id="cfg-edebuff-${index}-${dIdx}-stat" style="width:72px;">
                             <option value="none" ${d.statType === 'none' ? 'selected' : ''}>없음</option>
@@ -632,8 +655,29 @@
                 <div class="enemy-config-inputs">
                     <label>최대체력<input type="number" value="${enemy.maxHp}" id="cfg-ehp-${index}"></label>
                     <label>민첩<input type="number" value="${enemy.dex}" id="cfg-edex-${index}"></label>
-                    <label>공격 다이스 목록(콤마 구분)<input type="text" value="${enemy.diceList.join(', ')}" id="cfg-edice-${index}"></label>
-                    <label>공격대상수<input type="number" min="1" max="6" value="${enemy.targetCount}" id="cfg-etargets-${index}"></label>
+                    <label>공격 다이스 목록(콤마 구분, 비우면 공격 안 함)<input type="text" value="${enemy.diceList.join(', ')}" id="cfg-edice-${index}" placeholder="비우면 공격 없음"></label>
+                    <label>공격대상수(N)<input type="number" min="1" max="6" value="${enemy.targetCount}" id="cfg-etargets-${index}"></label>
+                </div>
+                <div class="flex-row" style="margin-top:4px;">
+                    <label style="font-size:0.65rem; color:var(--text-muted); display:flex; flex-direction:column;">공격 대상 방식
+                        <select id="cfg-eatkmode-${index}" style="width:180px;">
+                            <option value="random" ${(!enemy.attackTargetMode || enemy.attackTargetMode === 'random') ? 'selected' : ''}>랜덤 N명</option>
+                            <option value="all" ${enemy.attackTargetMode === 'all' ? 'selected' : ''}>전체</option>
+                            <option value="excludePrevious" ${enemy.attackTargetMode === 'excludePrevious' ? 'selected' : ''}>이전 에너미 타격 대상 제외 N명</option>
+                            <option value="previousOnly" ${enemy.attackTargetMode === 'previousOnly' ? 'selected' : ''}>이전 에너미 타격 대상 중 N명</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="flex-row" style="margin-top:6px;">
+                    <label style="font-size:0.65rem; color:var(--text-muted); display:flex; flex-direction:column;">이성 차감 다이스 (공격 시, 선택)
+                        <input type="text" value="${enemy.sanityDice || ''}" id="cfg-esanity-${index}" placeholder="비우면 없음" style="width:100px;">
+                    </label>
+                    <label style="font-size:0.65rem; color:var(--text-muted); display:flex; flex-direction:column;">부활까지 라운드 수 (0=부활 없음, 메인 제외)
+                        <input type="number" min="0" value="${enemy.reviveRounds || 0}" id="cfg-erevive-rounds-${index}" style="width:60px;">
+                    </label>
+                    <label style="font-size:0.65rem; color:var(--text-muted); display:flex; flex-direction:column;">부활 시 체력 %
+                        <input type="number" min="1" max="100" value="${enemy.reviveHpPercent || 100}" id="cfg-erevive-hp-${index}" style="width:60px;">
+                    </label>
                 </div>
                 <div style="margin-top:6px; border-top:1px dashed var(--border-color); padding-top:6px;">
                     <div class="flex-row" style="justify-content:space-between;">
@@ -673,7 +717,8 @@
         let newId = 'E' + Date.now();
         gameData.enemies.push({
             id: newId, name: '에너미 ' + (gameData.enemies.length + 1),
-            hp: 1000, maxHp: 1000, dex: 10, diceList: ['1d20+5'], targetCount: 1, debuffs: []
+            hp: 1000, maxHp: 1000, dex: 10, diceList: ['1d20+5'], targetCount: 1, debuffs: [],
+            sanityDice: '', reviveRounds: 0, reviveHpPercent: 100, reviveAtRound: null
         });
         renderEnemyConfigList();
     }
@@ -689,7 +734,7 @@
 
     function addDebuffRow(enemyIndex) {
         if (!gameData.enemies[enemyIndex].debuffs) gameData.enemies[enemyIndex].debuffs = [];
-        gameData.enemies[enemyIndex].debuffs.push({ round: gameData.round || 1, statType: 'none', statAmount: 0, damagePercent: 100 });
+        gameData.enemies[enemyIndex].debuffs.push({ round: gameData.round || 1, statType: 'none', statAmount: 0, damagePercent: 100, targetMode: 'all', randomCount: 1 });
         renderEnemyConfigList();
     }
 
@@ -752,10 +797,13 @@
             let n = document.getElementById(`cfg-ename-${index}`).value || ('에너미 ' + (index + 1));
             let hp = parseInt(document.getElementById(`cfg-ehp-${index}`).value) || 1000;
             let dex = parseInt(document.getElementById(`cfg-edex-${index}`).value) || 10;
-            let diceListRaw = document.getElementById(`cfg-edice-${index}`).value || '1d10';
+            let diceListRaw = document.getElementById(`cfg-edice-${index}`).value || '';
             let diceList = diceListRaw.split(',').map(s => s.trim()).filter(Boolean);
-            if (diceList.length === 0) diceList = ['1d10'];
             let targetCount = parseInt(document.getElementById(`cfg-etargets-${index}`).value) || 1;
+            let attackTargetMode = document.getElementById(`cfg-eatkmode-${index}`).value || 'random';
+            let sanityDice = document.getElementById(`cfg-esanity-${index}`).value.trim();
+            let reviveRounds = parseInt(document.getElementById(`cfg-erevive-rounds-${index}`).value) || 0;
+            let reviveHpPercent = parseInt(document.getElementById(`cfg-erevive-hp-${index}`).value) || 100;
 
             let debuffs = [];
             (oldEnemy.debuffs || []).forEach((d, dIdx) => {
@@ -766,10 +814,15 @@
                 let statAmount = parseInt(document.getElementById(`cfg-edebuff-${index}-${dIdx}-amount`).value) || 0;
                 let damagePercent = parseInt(document.getElementById(`cfg-edebuff-${index}-${dIdx}-percent`).value);
                 if (isNaN(damagePercent)) damagePercent = 100;
-                debuffs.push({ round, statType, statAmount, damagePercent });
+                let targetMode = document.getElementById(`cfg-edebuff-${index}-${dIdx}-mode`).value || 'all';
+                let randomCount = parseInt(document.getElementById(`cfg-edebuff-${index}-${dIdx}-randomcount`).value) || 1;
+                debuffs.push({ round, statType, statAmount, damagePercent, targetMode, randomCount });
             });
 
-            newEnemies.push(hydrateEnemy({ id: oldEnemy.id, name: n, hp: hp, dex: dex, diceList: diceList, targetCount: targetCount, debuffs: debuffs }));
+            newEnemies.push(hydrateEnemy({
+                id: oldEnemy.id, name: n, hp: hp, dex: dex, diceList: diceList, targetCount: targetCount, attackTargetMode: attackTargetMode, debuffs: debuffs,
+                sanityDice: sanityDice, reviveRounds: reviveRounds, reviveHpPercent: reviveHpPercent
+            }));
         });
         gameData.enemies = newEnemies;
 
@@ -880,34 +933,97 @@
     }
 
     // ===================== 라운드 디버프 적용/해제 =====================
+
+    // 스탯 차감 + 받는피해 배율을 실제로 대상들에게 적용하는 공통 로직.
+    // 받는피해 배율(damagePercent)은 파티 전체 공통 효과라 대상 지정과 무관하게 항상 전역 적용된다.
+    function applyDebuffToCharacters(d, enemyName, targets) {
+        if (d.statType && d.statType !== 'none' && d.statAmount) {
+            targets.forEach(c => {
+                if (!gameData.debuffStatBackup[c.id]) gameData.debuffStatBackup[c.id] = {};
+                if (gameData.debuffStatBackup[c.id][d.statType] === undefined) {
+                    gameData.debuffStatBackup[c.id][d.statType] = c.stats[d.statType];
+                }
+                c.stats[d.statType] = Math.max(1, c.stats[d.statType] - d.statAmount);
+            });
+            let targetDesc = targets.length ? targets.map(c => c.name).join(', ') : '(대상 없음)';
+            logMessage(`[<span class="tag-def">디버프 발동</span>] ${enemyName}의 특수 효과: ${targetDesc} ${DEBUFF_STAT_LABELS[d.statType] || d.statType} -${d.statAmount} (라운드 종료 시 원상복구)`, 'danger');
+        }
+        if (typeof d.damagePercent === 'number' && d.damagePercent !== 100) {
+            gameData.roundDamageMultiplier *= (d.damagePercent / 100);
+            logMessage(`[<span class="tag-def">디버프 발동</span>] ${enemyName}의 특수 효과: 이번 라운드 파티가 에너미에게 입히는 피해 ${d.damagePercent}% 적용`, 'danger');
+        }
+    }
+
+    // 라운드 시작 시점에 확정 가능한 디버프('전체'/'랜덤 N명')만 여기서 처리.
+    // '이전 에너미 타격 대상' 관련 디버프는 대응 페이즈에서 실제 피격 순서를 보며 처리한다 (applyPrevTargetDebuffsForEnemy).
     function applyRoundStartDebuffs() {
         gameData.debuffStatBackup = {};
         gameData.roundDamageMultiplier = 1;
 
-        let triggered = [];
         gameData.enemies.forEach(enemy => {
             (enemy.debuffs || []).forEach(d => {
-                if (d.round === gameData.round) triggered.push({ ...d, enemyName: enemy.name });
+                if (d.round !== gameData.round) return;
+                let mode = d.targetMode || 'all';
+                if (mode !== 'all' && mode !== 'random') return;
+
+                let candidates = gameData.characters.filter(c => c.hp > 0);
+                let targets;
+                if (mode === 'random') {
+                    let n = Math.max(1, Math.min(candidates.length, d.randomCount || 1));
+                    targets = [...candidates].sort(() => 0.5 - Math.random()).slice(0, n);
+                } else {
+                    targets = candidates;
+                }
+                applyDebuffToCharacters(d, enemy.name, targets);
             });
         });
-        if (triggered.length === 0) return;
+    }
 
-        triggered.forEach(d => {
-            if (d.statType && d.statType !== 'none' && d.statAmount) {
-                gameData.characters.forEach(c => {
-                    if (c.hp <= 0) return;
-                    if (!gameData.debuffStatBackup[c.id]) gameData.debuffStatBackup[c.id] = {};
-                    if (gameData.debuffStatBackup[c.id][d.statType] === undefined) {
-                        gameData.debuffStatBackup[c.id][d.statType] = c.stats[d.statType];
-                    }
-                    c.stats[d.statType] = Math.max(1, c.stats[d.statType] - d.statAmount);
-                });
-                logMessage(`[<span class="tag-def">디버프 발동</span>] ${d.enemyName}의 특수 효과: 이번 라운드 파티 전원 ${DEBUFF_STAT_LABELS[d.statType] || d.statType} -${d.statAmount} (라운드 종료 시 원상복구)`, 'danger');
+    // 에너미의 실제 공격 대상 선정 (디버프와는 별개로, 그 에너미 자신의 공격이 누구를 노리는지 결정).
+    // - all: 전체 (targetCount 무시)
+    // - random: 생존자 중 무작위 N명 (기존 기본 동작)
+    // - excludePrevious: 이번 라운드에 다른 에너미가 이미 때린 대상을 제외하고 N명 (부족하면 나머지에서 채움)
+    // - previousOnly: 이번 라운드에 다른 에너미가 이미 때린 대상 중에서만 N명 (부족하면 나머지에서 채움)
+    function selectAttackTargets(enemy, aliveChars, priorHitTargetIds) {
+        let mode = enemy.attackTargetMode || 'random';
+        if (mode === 'all') {
+            return [...aliveChars];
+        }
+        let n = Math.min(enemy.targetCount, aliveChars.length);
+        if (mode === 'excludePrevious') {
+            let notPrev = aliveChars.filter(c => !priorHitTargetIds.has(c.id));
+            let prev = aliveChars.filter(c => priorHitTargetIds.has(c.id));
+            let picked = [...notPrev].sort(() => 0.5 - Math.random()).slice(0, n);
+            if (picked.length < n) {
+                picked = picked.concat([...prev].sort(() => 0.5 - Math.random()).slice(0, n - picked.length));
             }
-            if (typeof d.damagePercent === 'number' && d.damagePercent !== 100) {
-                gameData.roundDamageMultiplier *= (d.damagePercent / 100);
-                logMessage(`[<span class="tag-def">디버프 발동</span>] ${d.enemyName}의 특수 효과: 이번 라운드 파티가 에너미에게 입히는 피해 ${d.damagePercent}% 적용`, 'danger');
+            return picked;
+        } else if (mode === 'previousOnly') {
+            let prev = aliveChars.filter(c => priorHitTargetIds.has(c.id));
+            let others = aliveChars.filter(c => !priorHitTargetIds.has(c.id));
+            let picked = [...prev].sort(() => 0.5 - Math.random()).slice(0, n);
+            if (picked.length < n) {
+                picked = picked.concat([...others].sort(() => 0.5 - Math.random()).slice(0, n - picked.length));
             }
+            return picked;
+        } else {
+            return [...aliveChars].sort(() => 0.5 - Math.random()).slice(0, n);
+        }
+    }
+
+    // '이전 에너미 타격 대상 제외/만' 디버프는 이 에너미가 실제로 공격을 실행하기 직전,
+    // 그때까지 같은 라운드에서 다른 에너미들이 때린 대상 목록(priorHitTargetIds)을 보고 처리한다.
+    function applyPrevTargetDebuffsForEnemy(enemy, priorHitTargetIds) {
+        (enemy.debuffs || []).forEach(d => {
+            if (d.round !== gameData.round) return;
+            let mode = d.targetMode || 'all';
+            if (mode !== 'excludePrevious' && mode !== 'previousOnly') return;
+
+            let candidates = gameData.characters.filter(c => c.hp > 0);
+            let targets = (mode === 'previousOnly')
+                ? candidates.filter(c => priorHitTargetIds.has(c.id))
+                : candidates.filter(c => !priorHitTargetIds.has(c.id));
+            applyDebuffToCharacters(d, enemy.name, targets);
         });
     }
 
@@ -943,6 +1059,52 @@
         return e.id === gameData.mainEnemyId;
     }
 
+    // 에너미가 죽었을 때 공통 처리: 처치 로그 + (메인이 아니고 부활 라운드가 설정돼 있으면) 부활 예약
+    function checkEnemyDefeat(enemy) {
+        if (enemy.hp > 0) return;
+        logMessage(`[<span class="tag-dead">처치</span>] ${enemy.name} 토벌 완료!`, 'system');
+        scheduleEnemyRevive(enemy);
+    }
+
+    function scheduleEnemyRevive(enemy) {
+        if (isMainEnemy(enemy)) return; // 메인 에너미는 부활하지 않음
+        if (!enemy.reviveRounds || enemy.reviveRounds <= 0) return;
+        if (enemy.reviveAtRound) return; // 이미 예약된 경우 중복 예약 방지
+        enemy.reviveAtRound = gameData.round + enemy.reviveRounds;
+        logMessage(`[<span class="tag-revive">부활 예고</span>] ${enemy.name}은(는) 제 ${enemy.reviveAtRound} 라운드 시작 시 부활합니다.`, 'system');
+    }
+
+    // 라운드 시작마다 호출: 부활 시점이 된 에너미를 되살린다 (메인 에너미는 대상 아님)
+    function processEnemyRevives() {
+        gameData.enemies.forEach(enemy => {
+            if (isMainEnemy(enemy)) return;
+            if (enemy.hp > 0) return;
+            if (!enemy.reviveAtRound) return;
+            if (gameData.round >= enemy.reviveAtRound) {
+                let pct = (typeof enemy.reviveHpPercent === 'number' && enemy.reviveHpPercent > 0) ? enemy.reviveHpPercent : 100;
+                enemy.hp = Math.max(1, Math.round(enemy.maxHp * (pct / 100)));
+                enemy.reviveAtRound = null;
+                logMessage(`[<span class="tag-revive">부활</span>] ${enemy.name}이(가) 체력 ${enemy.hp}/${enemy.maxHp}로 부활했습니다!`, 'danger');
+            }
+        });
+    }
+
+    // 부활 예약이 남아있는 죽은 에너미가 있으면 아직 전멸(승리) 처리를 하지 않는다
+    function allEnemiesPermanentlyDefeated() {
+        return gameData.enemies.every(e => e.hp <= 0 && !e.reviveAtRound);
+    }
+
+    // 이성 감소 공통 처리 (라운드 종료 이성 점검 / 에너미 공격에 딸린 이성 차감 다이스 양쪽에서 재사용)
+    function applySanityLoss(char, amount, sourceLabel) {
+        char.sanity = Math.max(0, char.sanity - amount);
+        logMessage(`[이성 감소] ${char.name}: ${sourceLabel} -${amount} (현재: ${char.sanity}/${char.maxSanity})`, 'system');
+        if (char.sanity === 0) {
+            char.stunned = 2;
+            char.sanity = 15;
+            logMessage(`[폭주 경고] ${char.name} 이성 상실로 2턴간 모든 선언 불가(피격은 계속 가능)! 이후 이성 15 회복.`, 'danger');
+        }
+    }
+
     function renderUI() {
         document.getElementById('round-indicator').innerText = `제 ${gameData.round} 라운드`;
 
@@ -953,6 +1115,7 @@
             let isDead = enemy.hp <= 0;
             let mainTag = isMain ? ' <span class="tag-main">메인</span>' : '';
             let deadTag = isDead ? ' <span class="tag-dead">처치됨</span>' : '';
+            let reviveTag = (isDead && enemy.reviveAtRound) ? ` <span class="tag-revive">제 ${enemy.reviveAtRound} 라운드 부활 예정</span>` : '';
             let isAoeRound = (gameData.round % (gameData.mainAoeInterval || 5) === 0);
             let targetDesc = (isMain && isAoeRound && gameData.mainAoeDice && gameData.mainAoeDice.trim() !== '')
                 ? '전체 (단체 공격)'
@@ -962,7 +1125,7 @@
                 : '';
             enemyContainer.innerHTML += `
                 <div class="card enemy-card ${isMain ? 'main-enemy' : ''} ${isDead ? 'defeated' : ''}">
-                    <h3>${enemy.name}${mainTag}${deadTag} <span>${Math.max(0, enemy.hp)} / ${enemy.maxHp}</span></h3>
+                    <h3>${enemy.name}${mainTag}${deadTag}${reviveTag} <span>${Math.max(0, enemy.hp)} / ${enemy.maxHp}</span></h3>
                     <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); margin-top: 6px;">
                         <div class="stat-badge">민첩 <span>${enemy.dex}</span></div>
                         <div class="stat-badge">타격 수 <span>${targetDesc}</span></div>
@@ -1088,9 +1251,7 @@
         }
 
         target.hp = Math.max(0, target.hp - finalDmg);
-        if (target.hp <= 0) {
-            logMessage(`[<span class="tag-dead">처치</span>] ${target.name} 토벌 완료!`, 'system');
-        }
+        checkEnemyDefeat(target);
     }
 
     function runStrAction(char, target) {
@@ -1107,9 +1268,7 @@
             logMessage(`└ [<span class="tag-def">디버프 배율 적용</span>] 최종 피해 ${dmg} -> ${finalDmg}`, 'party');
         }
         target.hp = Math.max(0, target.hp - finalDmg);
-        if (target.hp <= 0) {
-            logMessage(`[<span class="tag-dead">처치</span>] ${target.name} 토벌 완료!`, 'system');
-        }
+        checkEnemyDefeat(target);
     }
 
     function runHealAction(char, target, buff, buffData) {
@@ -1203,29 +1362,49 @@
 
         let isAoeRound = (gameData.round % (gameData.mainAoeInterval || 5) === 0);
         let hitList = [];
+        let priorHitTargetIds = new Set(); // 이 라운드에서 지금까지(이전 에너미들이) 타격한 대상들
 
         getAliveEnemies().forEach(enemy => {
+            // '이전 에너미 타격 대상 제외/만' 디버프는 지금까지의 피격 기록을 보고 여기서 처리
+            applyPrevTargetDebuffsForEnemy(enemy, priorHitTargetIds);
+
             let isMain = isMainEnemy(enemy);
             let useAoe = isMain && isAoeRound && gameData.mainAoeDice && gameData.mainAoeDice.trim() !== '';
+            let thisEnemyHits = [];
 
             if (useAoe) {
                 let aoeRes = rollCustomDicePure(gameData.mainAoeDice);
                 logMessage(`[<span class="tag-atk" style="color:var(--danger)">특수 패턴 발동</span>] ${gameData.mainAoeInterval}의 배수 라운드 도래! ${enemy.name}이(가) <b>전체 단체 공격</b>을 시전합니다! (공용 다이스: <span class="dice-highlight">${aoeRes.detail}</span> = ${aoeRes.value} 피해, 전원 동일 적용)`, 'enemy');
-                aliveChars.forEach(t => hitList.push({ target: t, damage: aoeRes.value }));
+                aliveChars.forEach(t => { hitList.push({ target: t, damage: aoeRes.value }); thisEnemyHits.push(t); });
             } else {
                 if (isMain && isAoeRound) {
                     logMessage(`[<span class="tag-atk">알림</span>] ${enemy.name}의 단체 공격 다이스가 비어있어 이번 라운드는 일반 공격으로 대체합니다.`, 'system');
                 }
-                let targetCount = Math.min(enemy.targetCount, aliveChars.length);
-                let shuffled = [...aliveChars].sort(() => 0.5 - Math.random());
-                let targets = shuffled.slice(0, targetCount);
-                targets.forEach((t, slotIdx) => {
-                    let diceStr = getEnemyDiceForSlot(enemy, slotIdx);
-                    let res = rollCustomDicePure(diceStr);
-                    logMessage(`[<span class="tag-atk">에너미 공격</span>] ${enemy.name}이(가) [${t.name}]에게 (다이스: <span class="dice-highlight">${res.detail}</span> = ${res.value} 피해, 적용 다이스: ${diceStr}) 데미지를 넣음`, 'enemy');
-                    hitList.push({ target: t, damage: res.value });
+                let targets = selectAttackTargets(enemy, aliveChars, priorHitTargetIds);
+                if (!enemy.diceList || enemy.diceList.length === 0) {
+                    // 공격 다이스가 비어있으면 대상은 그대로 선정하되(이전 타격 대상 추적/이성 차감용) 피해는 주지 않는다.
+                    logMessage(`[<span class="tag-atk">알림</span>] ${enemy.name}은(는) 공격 다이스가 없어 이번 공격으로 피해를 주지 않습니다. (대상: ${targets.map(t => t.name).join(', ') || '없음'})`, 'enemy');
+                    targets.forEach(t => thisEnemyHits.push(t));
+                } else {
+                    targets.forEach((t, slotIdx) => {
+                        let diceStr = getEnemyDiceForSlot(enemy, slotIdx);
+                        let res = rollCustomDicePure(diceStr);
+                        logMessage(`[<span class="tag-atk">에너미 공격</span>] ${enemy.name}이(가) [${t.name}]에게 (다이스: <span class="dice-highlight">${res.detail}</span> = ${res.value} 피해, 적용 다이스: ${diceStr}) 데미지를 넣음`, 'enemy');
+                        hitList.push({ target: t, damage: res.value });
+                        thisEnemyHits.push(t);
+                    });
+                }
+            }
+
+            // 이 에너미의 공격에 이성 차감 다이스가 딸려 있으면, 맞은 대상 각자 즉시 이성을 잃는다
+            if (enemy.sanityDice && enemy.sanityDice.trim() !== '') {
+                thisEnemyHits.forEach(t => {
+                    let sanityRes = rollCustomDicePure(enemy.sanityDice);
+                    applySanityLoss(t, sanityRes.value, `${enemy.name}의 공격 (다이스: <span class="dice-highlight">${sanityRes.detail}</span>)`);
                 });
             }
+
+            thisEnemyHits.forEach(t => priorHitTargetIds.add(t.id));
         });
 
         if (gameData.mode === 'manual') {
@@ -1273,7 +1452,7 @@
     }
 
     function executeNextPhase() {
-        if (getAliveEnemies().length === 0) {
+        if (allEnemiesPermanentlyDefeated()) {
             alert('이미 모든 에너미를 토벌하였습니다.');
             return;
         }
@@ -1286,6 +1465,7 @@
         let actingChars = aliveChars.filter(c => c.stunned === 0);
 
         if (gameData.phaseStep === 0) {
+            processEnemyRevives();
             applyRoundStartDebuffs();
 
             let partyDexSum = actingChars.reduce((sum, c) => sum + c.stats.dex, 0);
@@ -1321,15 +1501,7 @@
                     return;
                 }
                 let lossRes = rollCustomDicePure(sanityDiceStr);
-                let loss = lossRes.value;
-                char.sanity = Math.max(0, char.sanity - loss);
-                logMessage(`[이성 점검] ${char.name} 이성 체크 (다이스: ${sanityDiceStr}, 눈금: <span class="dice-highlight">${lossRes.detail}</span>) -> 이성 -${loss} (현재: ${char.sanity}/${char.maxSanity})`, 'system');
-
-                if (char.sanity === 0) {
-                    char.stunned = 2;
-                    char.sanity = 15;
-                    logMessage(`[폭주 경고] ${char.name} 이성 상실로 2턴간 모든 선언 불가(피격은 계속 가능)! 이후 이성 15 회복.`, 'danger');
-                }
+                applySanityLoss(char, lossRes.value, `이성 점검 (다이스: ${sanityDiceStr}, 눈금: <span class="dice-highlight">${lossRes.detail}</span>)`);
             });
 
             revertRoundDebuffs();
@@ -1735,9 +1907,7 @@
             let counterMultNote = (finalCounterDmg !== counterDmg) ? ` (디버프 배율 적용 -> 최종 ${finalCounterDmg})` : '';
             target.hp = Math.max(0, target.hp - finalCounterDmg);
             logMessage(`└ [<span class="tag-succ">반격 성공</span>] 판정 눈금: <span class="dice-highlight">${roll.total}</span> (> 기준 ${threshold}) -> 본인 최종 피해값 ${damage} (전체 피해 그대로 적용) + 반격 데미지 <span class="dice-highlight">${detailText}</span> = ${counterDmg}${counterMultNote} (${target.name}에게 적용)`, 'party');
-            if (target.hp <= 0) {
-                logMessage(`[<span class="tag-dead">처치</span>] ${target.name} 토벌 완료!`, 'system');
-            }
+            checkEnemyDefeat(target);
         } else {
             logMessage(`└ [<span class="tag-succ">반격 성공</span>] 판정 눈금: <span class="dice-highlight">${roll.total}</span> (> 기준 ${threshold}) -> 본인 최종 피해값 ${damage} (반격할 대상 없어 반격 데미지는 무산)`, 'party');
         }
@@ -1821,7 +1991,7 @@
     }
 
     function checkGameOver() {
-        if (getAliveEnemies().length === 0) {
+        if (getAliveEnemies().length === 0 && allEnemiesPermanentlyDefeated()) {
             logMessage(`[전투 승리] 모든 에너미를 토벌하였습니다!`, 'system');
             let result = buildRaidResult('victory');
             showRaidResultPanel(result);
