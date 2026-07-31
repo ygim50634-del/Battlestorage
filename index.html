@@ -425,7 +425,9 @@
                             <b>공격 대상 방식</b>으로 전체(대상수 무시)/랜덤 N명/이전 에너미 타격 대상 제외 N명/이전 에너미 타격 대상 중 N명을 고를 수 있습니다. "이전 에너미 타격 대상"은 같은 라운드 안에서 앞서 행동한 다른 에너미들이 이미 때린 대상을 기준으로 하며(대상 인원이 N명보다 적으면 나머지 조건에서 채웁니다), 이 에너미가 그 라운드의 첫 번째로 행동하는 에너미라면 아직 아무도 맞지 않은 상태이므로 실질적으로 전체 생존자 중에서 뽑힙니다.<br>
                             에너미가 여럿일 경우 파티는 항상 <b>체력이 가장 낮은 생존 에너미</b>부터 몰아서 공격합니다. 메인 전용 "단체 공격/라운드 종료 이성 차감"과 별개로, <b>에너미별 이성 차감 다이스</b>를 설정하면 그 에너미가 실제로 때린 대상만 공격 즉시 추가로 이성을 잃습니다(메인 포함 모든 에너미에 설정 가능).<br>
                             <b>디버프</b>는 지정한 라운드가 되면 대상(전체/랜덤 N명/이전 에너미 타격 대상 제외/이전 에너미 타격 대상만)의 스탯을 그 라운드 한정으로 차감하거나(라운드 종료 시 원상복구), 그 라운드에 파티가 에너미에게 입히는 모든 피해(공격 데미지, 반격 데미지 포함)에 배율(%)을 곱합니다. 스탯 차감과 피해 배율은 함께 설정할 수도, 하나만 설정할 수도 있습니다. "이전 에너미 타격 대상" 계열은 대응 페이즈에서 에너미가 순서대로 공격할 때 그 시점까지의 피격 기록을 보고 판정되므로, 파티가 먼저 행동하는 라운드에서는 이미 끝난 공격 페이즈 피해 배율에는 소급 적용되지 않습니다.<br>
-                            <b>부활</b>은 메인이 아닌 에너미에만 설정할 수 있습니다. 처치된 후 지정한 라운드 수가 지나면 지정한 체력 비율로 되살아나며, 부활을 기다리는 동안에는 레이드가 종료되지 않습니다.
+                            <b>부활</b>은 메인이 아닌 에너미에만 설정할 수 있습니다. 처치된 후 지정한 라운드 수가 지나면 지정한 체력 비율로 되살아나며, 부활을 기다리는 동안에는 레이드가 종료되지 않습니다.<br>
+                            <b>파티 공격 회피 확률(%)</b>을 설정하면, 그 에너미는 매화의 이능(공격)·근력 공격·반격 데미지를 맞을 때마다 그 확률만큼 개별적으로 회피를 시도합니다(디버프와 무관하게 항상 적용되는 에너미 자체 능력).<br>
+                            <b>디버프/버프 지속시간(턴 개념)</b>: 파티 선공 라운드에 걸린 디버프는 그 라운드 종료가 아니라 <b>다음 라운드의 파티 공격 페이즈가 끝날 때까지</b> 유지됩니다. 반대로 에너미 선공 라운드에 난초(보조)가 건 버프는 그 라운드 종료가 아니라 <b>다음 라운드의 에너미 공격(대응 페이즈)이 끝날 때까지</b> 유지됩니다. (파티 선공일 때 버프, 에너미 선공일 때 디버프는 기존처럼 같은 라운드 안에서만 적용됩니다.)
                         </div>
                     </div>
                     <div>
@@ -475,7 +477,7 @@
                     <span id="phase-indicator" style="font-size: 0.75rem; color: var(--text-muted);">공격 페이즈 대기 중</span>
                 </h3>
                 <div id="log-box" class="log-box">
-                    <div class="log-entry log-system">[준비] 디버프 대상 방식(전체/랜덤 N명/이전 에너미 타격 대상 제외·만), 에너미별 이성 차감 다이스, 처치된 비메인 에너미의 부활 기믹, 레이드 종료 결과 요약/기록, 자동·수동 모드, 기절/사망 구분, 대리 방어 규칙이 모두 반영된 버전입니다.</div>
+                    <div class="log-entry log-system">[준비] 디버프/버프의 턴 개념 지속시간(파티 선공 시 디버프는 다음 라운드 공격 페이즈까지, 에너미 선공 시 버프는 다음 라운드 대응 페이즈까지 유지), 에너미별 파티 공격 회피 확률, 디버프 대상 방식(전체/랜덤 N명/이전 에너미 타격 대상 제외·만), 에너미별 이성 차감 다이스, 처치된 비메인 에너미의 부활 기믹, 레이드 종료 결과 요약/기록, 자동·수동 모드, 기절/사망 구분, 대리 방어 규칙이 모두 반영된 버전입니다.</div>
                 </div>
             </div>
         </div>
@@ -544,8 +546,10 @@
         mode: 'auto', // 'auto' | 'manual'
         roundInitiative: null, // 'party' | 'enemy' - 라운드 시작 시 1회 판정 후 고정
         activeBuffs: {},
+        activeBuffsPendingClear: false, // true면 다음 대응 페이즈 종료 시 activeBuffs를 정리
         roundDamageMultiplier: 1,
         debuffStatBackup: {},
+        debuffsPendingClear: false, // true면 다음 공격 페이즈 종료 시 디버프(스탯/배율)를 원상복구
         raidHistory: [], // 완료된 레이드 결과 기록 (세션 메모리 - 새로고침 시 사라짐, 다운로드로 보관 가능)
         mainEnemyId: 'E1',
         mainAoeDice: '2d2*10+30',
@@ -587,6 +591,7 @@
         if (typeof e.reviveRounds !== 'number') e.reviveRounds = 0;
         if (typeof e.reviveHpPercent !== 'number') e.reviveHpPercent = 100;
         e.reviveAtRound = e.reviveAtRound || null;
+        if (typeof e.dodgeChance !== 'number') e.dodgeChance = 0;
         return e;
     }
     gameData.enemies = gameData.enemies.map(hydrateEnemy);
@@ -678,6 +683,9 @@
                     <label style="font-size:0.65rem; color:var(--text-muted); display:flex; flex-direction:column;">부활 시 체력 %
                         <input type="number" min="1" max="100" value="${enemy.reviveHpPercent || 100}" id="cfg-erevive-hp-${index}" style="width:60px;">
                     </label>
+                    <label style="font-size:0.65rem; color:var(--text-muted); display:flex; flex-direction:column;">파티 공격 회피 확률(%)
+                        <input type="number" min="0" max="100" value="${enemy.dodgeChance || 0}" id="cfg-edodge-${index}" style="width:60px;">
+                    </label>
                 </div>
                 <div style="margin-top:6px; border-top:1px dashed var(--border-color); padding-top:6px;">
                     <div class="flex-row" style="justify-content:space-between;">
@@ -718,7 +726,7 @@
         gameData.enemies.push({
             id: newId, name: '에너미 ' + (gameData.enemies.length + 1),
             hp: 1000, maxHp: 1000, dex: 10, diceList: ['1d20+5'], targetCount: 1, debuffs: [],
-            sanityDice: '', reviveRounds: 0, reviveHpPercent: 100, reviveAtRound: null
+            sanityDice: '', reviveRounds: 0, reviveHpPercent: 100, reviveAtRound: null, dodgeChance: 0
         });
         renderEnemyConfigList();
     }
@@ -804,6 +812,9 @@
             let sanityDice = document.getElementById(`cfg-esanity-${index}`).value.trim();
             let reviveRounds = parseInt(document.getElementById(`cfg-erevive-rounds-${index}`).value) || 0;
             let reviveHpPercent = parseInt(document.getElementById(`cfg-erevive-hp-${index}`).value) || 100;
+            let dodgeChance = parseInt(document.getElementById(`cfg-edodge-${index}`).value);
+            if (isNaN(dodgeChance)) dodgeChance = 0;
+            dodgeChance = Math.max(0, Math.min(100, dodgeChance));
 
             let debuffs = [];
             (oldEnemy.debuffs || []).forEach((d, dIdx) => {
@@ -821,7 +832,7 @@
 
             newEnemies.push(hydrateEnemy({
                 id: oldEnemy.id, name: n, hp: hp, dex: dex, diceList: diceList, targetCount: targetCount, attackTargetMode: attackTargetMode, debuffs: debuffs,
-                sanityDice: sanityDice, reviveRounds: reviveRounds, reviveHpPercent: reviveHpPercent
+                sanityDice: sanityDice, reviveRounds: reviveRounds, reviveHpPercent: reviveHpPercent, dodgeChance: dodgeChance
             }));
         });
         gameData.enemies = newEnemies;
@@ -856,8 +867,11 @@
         gameData.round = 1;
         gameData.phaseStep = 0;
         gameData.activeBuffs = {};
+        gameData.activeBuffsPendingClear = false;
         gameData.roundDamageMultiplier = 1;
         gameData.debuffStatBackup = {};
+        gameData.debuffsPendingClear = false;
+        gameData.roundInitiative = null;
         document.getElementById('manual-panel').style.display = 'none';
         document.getElementById('raid-result-panel').style.display = 'none';
         document.getElementById('next-btn').style.display = '';
@@ -956,9 +970,12 @@
 
     // 라운드 시작 시점에 확정 가능한 디버프('전체'/'랜덤 N명')만 여기서 처리.
     // '이전 에너미 타격 대상' 관련 디버프는 대응 페이즈에서 실제 피격 순서를 보며 처리한다 (applyPrevTargetDebuffsForEnemy).
+    // 이전 라운드의 디버프가 아직 안 풀렸다면(파티 선공 라운드였다면) backup/배율을 초기화하지 않고 그 위에 덧붙인다.
     function applyRoundStartDebuffs() {
-        gameData.debuffStatBackup = {};
-        gameData.roundDamageMultiplier = 1;
+        if (!gameData.debuffsPendingClear) {
+            gameData.debuffStatBackup = {};
+            gameData.roundDamageMultiplier = 1;
+        }
 
         gameData.enemies.forEach(enemy => {
             (enemy.debuffs || []).forEach(d => {
@@ -975,6 +992,7 @@
                     targets = candidates;
                 }
                 applyDebuffToCharacters(d, enemy.name, targets);
+                gameData.debuffsPendingClear = true;
             });
         });
     }
@@ -1024,6 +1042,7 @@
                 ? candidates.filter(c => priorHitTargetIds.has(c.id))
                 : candidates.filter(c => !priorHitTargetIds.has(c.id));
             applyDebuffToCharacters(d, enemy.name, targets);
+            gameData.debuffsPendingClear = true;
         });
     }
 
@@ -1245,9 +1264,13 @@
             logMessage(`└ [<span class="tag-crit-fail">크리티컬 실패</span>] 판정 눈금: <span class="dice-highlight">[${crit.roll.rolls.join(', ')}]</span> (<= 기준 ${crit.threshold})`, 'party');
         }
 
-        let finalDmg = applyDamageMultiplier(dmg);
-        if (finalDmg !== dmg) {
-            logMessage(`└ [<span class="tag-def">디버프 배율 적용</span>] 최종 피해 ${dmg} -> ${finalDmg}`, 'party');
+        let dodgeRes = attemptEnemyDodge(target, '이능(공격)');
+        let finalDmg = 0;
+        if (!dodgeRes.dodged) {
+            finalDmg = applyDamageMultiplier(dmg);
+            if (finalDmg !== dmg) {
+                logMessage(`└ [<span class="tag-def">디버프 배율 적용</span>] 최종 피해 ${dmg} -> ${finalDmg}`, 'party');
+            }
         }
 
         target.hp = Math.max(0, target.hp - finalDmg);
@@ -1263,12 +1286,30 @@
 
         logMessage(`[<span class="tag-atk">행동 선언</span>] [${char.name} > ${target.name} / 근력 / 근력스탯 ${lvl}]`, 'party');
         logMessage(`└ [<span class="tag-atk">데미지</span>] 눈금: <span class="dice-highlight">${detailText}</span> -> ${target.name}에게 ${dmg} 피해`, 'party');
-        let finalDmg = applyDamageMultiplier(dmg);
-        if (finalDmg !== dmg) {
-            logMessage(`└ [<span class="tag-def">디버프 배율 적용</span>] 최종 피해 ${dmg} -> ${finalDmg}`, 'party');
+        let dodgeRes = attemptEnemyDodge(target, '근력 공격');
+        let finalDmg = 0;
+        if (!dodgeRes.dodged) {
+            finalDmg = applyDamageMultiplier(dmg);
+            if (finalDmg !== dmg) {
+                logMessage(`└ [<span class="tag-def">디버프 배율 적용</span>] 최종 피해 ${dmg} -> ${finalDmg}`, 'party');
+            }
         }
         target.hp = Math.max(0, target.hp - finalDmg);
         checkEnemyDefeat(target);
+    }
+
+    // 에너미의 회피 확률(파티 공격을 개별 공격마다 회피하는 기능). enemy.dodgeChance(0~100)가 설정된 경우에만 판정한다.
+    function attemptEnemyDodge(enemy, sourceLabel) {
+        let chance = enemy.dodgeChance || 0;
+        if (chance <= 0) return { dodged: false };
+        let roll = rollDiceDetailed(1, 100);
+        let dodged = roll.total <= chance;
+        if (dodged) {
+            logMessage(`└ [<span class="tag-succ">에너미 회피 성공</span>] ${enemy.name}이(가) ${sourceLabel}을(를) 회피했습니다! (판정 눈금: ${roll.total} <= 회피확률 ${chance}) -> 피해 무효화`, 'party');
+        } else {
+            logMessage(`└ [<span class="tag-fail">에너미 회피 실패</span>] ${enemy.name}이(가) ${sourceLabel} 회피에 실패했습니다. (판정 눈금: ${roll.total} > 회피확률 ${chance})`, 'party');
+        }
+        return { dodged, roll: roll.total };
     }
 
     function runHealAction(char, target, buff, buffData) {
@@ -1314,6 +1355,7 @@
 
         if (actingChars.length === 0) {
             logMessage(`[알림] 행동 가능한(기절하지 않은) 캐릭터가 없어 이번 라운드는 공격 선언이 없습니다.`, 'system');
+            finishAttackPhaseBookkeeping();
             renderUI();
             advanceAfterSubPhase();
             return;
@@ -1352,13 +1394,27 @@
             }
         });
 
+        finishAttackPhaseBookkeeping();
         renderUI();
         if (checkGameOver()) return;
         advanceAfterSubPhase();
     }
 
+    // 공격 페이즈가 끝날 때마다 공통으로 처리: (1) 파티 선공 라운드에서 다음 라운드 공격 페이즈까지로
+    // 연장된 디버프가 있었다면 여기서 정리하고, (2) 이번에 새로 건 보조 버프는 다음 대응 페이즈가
+    // 끝날 때 정리되도록 예약한다 (에너미 선공 라운드라면 그 "다음 대응 페이즈"는 다음 라운드의 것이 된다).
+    function finishAttackPhaseBookkeeping() {
+        if (gameData.debuffsPendingClear) {
+            revertRoundDebuffs();
+            gameData.debuffsPendingClear = false;
+        }
+        gameData.activeBuffsPendingClear = true;
+    }
+
     function runDefensePhase(aliveChars, actingChars) {
         logDivider(`제 ${gameData.round} 라운드 - 대응 페이즈`);
+
+        applyRoundStartDebuffs();
 
         let isAoeRound = (gameData.round % (gameData.mainAoeInterval || 5) === 0);
         let hitList = [];
@@ -1446,9 +1502,20 @@
             hit.target.hp = Math.max(0, hit.target.hp - res.finalDamage);
         });
 
+        finishDefensePhaseBookkeeping();
         renderUI();
         if (checkGameOver()) return;
         advanceAfterSubPhase();
+    }
+
+    // 대응 페이즈가 끝날 때마다 공통으로 처리: 이번 공격 페이즈에서 걸린 보조 버프가
+    // "정리 예약(activeBuffsPendingClear)" 상태라면 여기서 실제로 정리한다.
+    // (에너미 선공 라운드였다면 버프는 아직 정리되지 않은 채로 다음 라운드의 대응 페이즈까지 남아있다가 여기서 정리됨)
+    function finishDefensePhaseBookkeeping() {
+        if (gameData.activeBuffsPendingClear) {
+            gameData.activeBuffs = {};
+            gameData.activeBuffsPendingClear = false;
+        }
     }
 
     function executeNextPhase() {
@@ -1466,7 +1533,6 @@
 
         if (gameData.phaseStep === 0) {
             processEnemyRevives();
-            applyRoundStartDebuffs();
 
             let partyDexSum = actingChars.reduce((sum, c) => sum + c.stats.dex, 0);
             let enemyDexRef = getLowestHpEnemy() ? getLowestHpEnemy().dex : 0;
@@ -1504,7 +1570,6 @@
                 applySanityLoss(char, lossRes.value, `이성 점검 (다이스: ${sanityDiceStr}, 눈금: <span class="dice-highlight">${lossRes.detail}</span>)`);
             });
 
-            revertRoundDebuffs();
             renderUI();
             gameData.round++;
             gameData.phaseStep = 0;
@@ -1617,6 +1682,7 @@
 
         document.getElementById('manual-panel').style.display = 'none';
         document.getElementById('next-btn').style.display = '';
+        finishAttackPhaseBookkeeping();
         renderUI();
         if (checkGameOver()) return;
 
@@ -1726,6 +1792,7 @@
 
         document.getElementById('manual-panel').style.display = 'none';
         document.getElementById('next-btn').style.display = '';
+        finishDefensePhaseBookkeeping();
         renderUI();
         if (checkGameOver()) return;
 
@@ -1903,11 +1970,16 @@
         }
 
         if (target) {
-            let finalCounterDmg = applyDamageMultiplier(counterDmg);
-            let counterMultNote = (finalCounterDmg !== counterDmg) ? ` (디버프 배율 적용 -> 최종 ${finalCounterDmg})` : '';
-            target.hp = Math.max(0, target.hp - finalCounterDmg);
-            logMessage(`└ [<span class="tag-succ">반격 성공</span>] 판정 눈금: <span class="dice-highlight">${roll.total}</span> (> 기준 ${threshold}) -> 본인 최종 피해값 ${damage} (전체 피해 그대로 적용) + 반격 데미지 <span class="dice-highlight">${detailText}</span> = ${counterDmg}${counterMultNote} (${target.name}에게 적용)`, 'party');
-            checkEnemyDefeat(target);
+            let dodgeRes = attemptEnemyDodge(target, '반격 데미지');
+            if (dodgeRes.dodged) {
+                logMessage(`└ [<span class="tag-succ">반격 성공</span>] 판정 눈금: <span class="dice-highlight">${roll.total}</span> (> 기준 ${threshold}) -> 본인 최종 피해값 ${damage} (전체 피해 그대로 적용) + 반격 데미지 <span class="dice-highlight">${detailText}</span>(${counterDmg})는 ${target.name}이(가) 회피`, 'party');
+            } else {
+                let finalCounterDmg = applyDamageMultiplier(counterDmg);
+                let counterMultNote = (finalCounterDmg !== counterDmg) ? ` (디버프 배율 적용 -> 최종 ${finalCounterDmg})` : '';
+                target.hp = Math.max(0, target.hp - finalCounterDmg);
+                logMessage(`└ [<span class="tag-succ">반격 성공</span>] 판정 눈금: <span class="dice-highlight">${roll.total}</span> (> 기준 ${threshold}) -> 본인 최종 피해값 ${damage} (전체 피해 그대로 적용) + 반격 데미지 <span class="dice-highlight">${detailText}</span> = ${counterDmg}${counterMultNote} (${target.name}에게 적용)`, 'party');
+                checkEnemyDefeat(target);
+            }
         } else {
             logMessage(`└ [<span class="tag-succ">반격 성공</span>] 판정 눈금: <span class="dice-highlight">${roll.total}</span> (> 기준 ${threshold}) -> 본인 최종 피해값 ${damage} (반격할 대상 없어 반격 데미지는 무산)`, 'party');
         }
